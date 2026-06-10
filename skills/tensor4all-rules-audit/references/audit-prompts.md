@@ -26,6 +26,10 @@ For each candidate:
 - confidence: low/medium/high
 - related_search: suggested rg query or related files for the main agent
 
+At the end, include a brief `rule_or_design_gap_notes` section if your scope
+exposes ambiguous repository rules, missing design docs, or docs/design
+inconsistencies that may cause false positives.
+
 If none, say "No possible issues found in assigned scope" and list the files you inspected.
 ```
 
@@ -69,3 +73,5 @@ For every candidate:
 
 Keep main-agent source reads minimal. If a candidate needs broad source reading,
 send a targeted recheck subagent instead of expanding the main context.
+Also compare candidate reports for meta-problems in rules or design docs, not
+just code defects.

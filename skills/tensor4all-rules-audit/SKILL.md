@@ -16,6 +16,7 @@ Audit tensor4all-rs by using lightweight subagents as broad source scanners, whi
 - Use mini subagents for coverage and candidate discovery only. They report possible issues; they do not decide final severity or create issues.
 - Keep the main agent on coordination. Do not broadly read source files in the main context; read only the minimal cited lines needed to verify a candidate or prepare a tightly scoped recheck.
 - The main agent must verify every accepted finding directly in source/API docs before treating it as real.
+- Analyze subagent reports for meta-problems: ambiguous rules, false-positive-prone rule wording, missing design docs, design/doc inconsistency, and repeated documentation drift patterns.
 - Do not pass an old full issue body to subagents. Maintain and pass only a short known-issues summary.
 - Preserve paths, APIs, and evidence in the known-issues summary exactly. Do not rewrite them from memory or replace placeholder/example paths with guessed real paths.
 - Aggregate accepted findings into one issue body. Create a GitHub issue only when the user asked for issue creation or explicitly approves it.
@@ -35,6 +36,7 @@ Audit tensor4all-rs by using lightweight subagents as broad source scanners, whi
    - Merge candidates by root cause, not by file count.
    - Verify evidence locally with minimal reads: cited lines first, then at most the nearest enclosing function or doc block if needed.
    - If evidence is insufficient, send a targeted recheck instead of exploring broadly in the main context.
+   - Also classify report patterns that point to rule/design defects rather than code defects. Examples: many subagents interpreting a rule differently, repeated "docs missing examples" reports that indicate unrealistic doc coverage policy, or implementation behavior not covered by `docs/design/`.
    - Reject vague, ungrounded, stale, or purely stylistic candidates.
    - Assign final severity:
      - Critical/High: likely wrong public behavior, data corruption, panics across valid inputs, C API error loss, hidden unbounded dense materialization, index identity violations, documented examples that cannot run, or repository-rule violations with broad blast radius.
@@ -48,6 +50,7 @@ Audit tensor4all-rs by using lightweight subagents as broad source scanners, whi
 
 5. Aggregate one issue.
    - Keep one issue body with a concise summary, accepted findings, evidence, impact, and suggested next checks.
+   - Include a separate "Rules/Design Gaps Detected During Audit" section when the subagent reports expose ambiguity or missing design guidance.
    - Include Medium/Low findings only when they are real and useful; separate them from blocking Critical/High issues.
    - If no accepted findings remain, report that no issue is needed unless the user wants an audit record.
 
@@ -82,6 +85,9 @@ Update the summary after each main-agent triage. Never ask a subagent to reread 
 ## Lower-Severity Notes
 <Optional.>
 
+## Rules/Design Gaps Detected During Audit
+<Optional. Include ambiguous rules, missing design docs, inconsistent docs, or repeated false-positive patterns found by comparing subagent reports.>
+
 ## Audit Coverage
 - Initial passes: <subagent scopes>
 - Recheck passes: <what was re-scanned>
@@ -94,6 +100,7 @@ Update the summary after each main-agent triage. Never ask a subagent to reread 
 |---|---|
 | Letting mini subagents decide severity | Treat their output as candidates; main verifies and assigns severity. |
 | Main agent reading whole modules to understand every candidate | Read only cited lines and nearest necessary context; delegate broader inspection. |
+| Treating subagent reports as isolated code bugs only | Compare reports for rule ambiguity, missing design rationale, and recurring false-positive patterns. |
 | Passing full old issue text into every iteration | Pass only the known-issues summary. |
 | Rewriting known issue paths while making a recheck prompt | Preserve known paths verbatim; put guessed or expanded search areas only in the separate scope. |
 | Stopping after the first clean subagent response | Confirm coverage and run related-pattern scans for accepted severe findings. |
