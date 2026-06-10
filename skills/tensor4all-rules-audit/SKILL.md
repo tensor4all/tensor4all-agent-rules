@@ -14,6 +14,7 @@ Audit tensor4all-rs by using lightweight subagents as broad source scanners, whi
 - Read `README.md`, `REPOSITORY_RULES.md`, and applicable `AGENTS.md` before dispatching.
 - Generate/read API docs first when public surface matters: `cargo run -p api-dump --release -- . -o docs/api`, then inspect `docs/api/*.md` before source.
 - Use mini subagents for coverage and candidate discovery only. They report possible issues; they do not decide final severity or create issues.
+- Keep the main agent on coordination. Do not broadly read source files in the main context; read only the minimal cited lines needed to verify a candidate or prepare a tightly scoped recheck.
 - The main agent must verify every accepted finding directly in source/API docs before treating it as real.
 - Do not pass an old full issue body to subagents. Maintain and pass only a short known-issues summary.
 - Preserve paths, APIs, and evidence in the known-issues summary exactly. Do not rewrite them from memory or replace placeholder/example paths with guessed real paths.
@@ -28,11 +29,13 @@ Audit tensor4all-rs by using lightweight subagents as broad source scanners, whi
 2. Dispatch initial mini subagents.
    - Use `gpt-5.4-mini` when the user asks for GPT5.x mini unless a newer mini model is explicitly available and requested.
    - Give each subagent exact files or directories, relevant rule excerpts, and the prompt pattern in `references/audit-prompts.md`.
-   - Require `possible_issue` output with `file:line`, violated rule, evidence, impact, and confidence. Forbid fixes and final severity labels.
+   - Require `possible_issue` output with `file:line`, violated rule, short evidence, impact, confidence, and a related search. Forbid fixes and final severity labels.
 
 3. Main-agent triage.
    - Merge candidates by root cause, not by file count.
-   - Verify evidence locally. Reject vague, ungrounded, stale, or purely stylistic candidates.
+   - Verify evidence locally with minimal reads: cited lines first, then at most the nearest enclosing function or doc block if needed.
+   - If evidence is insufficient, send a targeted recheck instead of exploring broadly in the main context.
+   - Reject vague, ungrounded, stale, or purely stylistic candidates.
    - Assign final severity:
      - Critical/High: likely wrong public behavior, data corruption, panics across valid inputs, C API error loss, hidden unbounded dense materialization, index identity violations, documented examples that cannot run, or repository-rule violations with broad blast radius.
      - Medium/Low: real but local, non-blocking, or incomplete evidence.
@@ -90,6 +93,7 @@ Update the summary after each main-agent triage. Never ask a subagent to reread 
 | Mistake | Correction |
 |---|---|
 | Letting mini subagents decide severity | Treat their output as candidates; main verifies and assigns severity. |
+| Main agent reading whole modules to understand every candidate | Read only cited lines and nearest necessary context; delegate broader inspection. |
 | Passing full old issue text into every iteration | Pass only the known-issues summary. |
 | Rewriting known issue paths while making a recheck prompt | Preserve known paths verbatim; put guessed or expanded search areas only in the separate scope. |
 | Stopping after the first clean subagent response | Confirm coverage and run related-pattern scans for accepted severe findings. |

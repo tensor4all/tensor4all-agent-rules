@@ -21,7 +21,7 @@ For each candidate:
 - id: local candidate id
 - file:line
 - rule: violated rule or invariant
-- evidence: concrete source/API-doc evidence
+- evidence: concrete source/API-doc evidence with a short snippet or precise line summary
 - impact: likely consequence if real
 - confidence: low/medium/high
 - related_search: suggested rg query or related files for the main agent
@@ -51,7 +51,7 @@ For each candidate:
 - id
 - relation: new-root-cause | broader-scope | possible-duplicate | refutation
 - file:line
-- evidence
+- evidence: short snippet or precise line summary
 - impact
 - confidence
 - related_search
@@ -66,3 +66,6 @@ For every candidate:
 3. Search related files with the candidate's `related_search` or a better `rg` query.
 4. Decide final severity and record the rationale.
 5. Update the known-issues summary before the next recheck.
+
+Keep main-agent source reads minimal. If a candidate needs broad source reading,
+send a targeted recheck subagent instead of expanding the main context.
