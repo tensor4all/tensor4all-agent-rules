@@ -30,7 +30,8 @@ rules/
   julia/
 skills/
   tensor4all-rules/
+  tensor4all-rules-audit/
 ```
 
-The skill is a thin trigger and navigation layer. The rule files remain the
-source of truth.
+Skills are thin trigger and workflow layers. The rule files remain the source
+of truth for repository policy.
