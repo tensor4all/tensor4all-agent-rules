@@ -20,6 +20,10 @@ Audit tensor4all-rs by using lightweight subagents as broad source scanners, whi
 - Do not pass an old full issue body to subagents. Maintain and pass only short summaries of accepted findings, rejected/false-positive candidates, and related GitHub issues.
 - Preserve paths, APIs, and evidence in summaries exactly. Do not rewrite them from memory or replace placeholder/example paths with guessed real paths.
 - Before dispatching or rechecking, gather a concise summary of relevant GitHub issues so subagents can avoid rediscovering already tracked work.
+- Resolve and record the audited repository commit before dispatching. Default to `origin/main` after fetching it.
+- Verify before dispatching that the audited commit exists on GitHub and that commit-pinned permalinks resolve. Do not audit a local-only or unpushed commit.
+- If the requested or current audit target is not exactly `origin/main`, stop and ask the user to confirm the non-default target. Include the target ref/hash and current `origin/main` hash in the question.
+- Use commit-pinned GitHub permalinks for source, docs, and API-doc line references in issues and PRs. Link to `/blob/<full-commit-hash>/...#L<line>` or `#L<start>-L<end>`, never to moving branch names such as `main` or `origin/main`.
 - Aggregate accepted findings into one issue body and one remediation PR. Do not finish with only an issue when accepted actionable findings exist.
 - Create a GitHub issue before the PR when accepted findings exist, unless the user explicitly asks for a local issue body only.
 - Open one remediation PR at the end after implementing a coherent fix set and running the repository-required verification that is feasible for the session.
@@ -29,7 +33,11 @@ Audit tensor4all-rs by using lightweight subagents as broad source scanners, whi
 ## Workflow
 
 1. Scope the audit.
+   - Run `git fetch origin`, resolve `origin/main`, and choose the audit target. Use `origin/main` unless the user explicitly requested another ref or confirms a non-`origin/main` checkout.
+   - Verify the chosen commit exists on GitHub, for example with `gh api repos/tensor4all/tenferro-rs/commits/<full-commit-hash>` or an equivalent GitHub commit lookup.
+   - If the commit lookup fails, do not dispatch subagents. Ask the user whether to push that commit, switch to `origin/main`, or provide another GitHub-visible ref.
    - Enumerate code with `rg --files`, including `crates/`, `docs/tutorial-code/`, `python/`, `scripts/`, examples, tests, and C API code when present.
+   - Record the audited commit hash and GitHub permalink base. Reuse that exact commit in every final issue/PR link.
    - Summarize relevant GitHub issues with issue number, title, state, affected area, and one-line status. Prefer recent open issues plus search results for the audit scope.
    - Split work by crate, language binding, or rule area so each mini subagent has a bounded file list.
 
@@ -42,6 +50,7 @@ Audit tensor4all-rs by using lightweight subagents as broad source scanners, whi
 3. Main-agent triage.
    - Merge candidates by root cause, not by file count.
    - Verify evidence locally with minimal reads: cited lines first, then at most the nearest enclosing function or doc block if needed.
+   - Convert verified file/line references into commit-pinned GitHub permalinks before adding them to accepted findings, rejected summaries, issue bodies, or PR bodies.
    - If evidence is insufficient, send a targeted recheck instead of exploring broadly in the main context.
    - Also classify report patterns that point to rule/design defects rather than code defects. Examples: many subagents interpreting a rule differently, repeated "docs missing examples" reports that indicate unrealistic doc coverage policy, or implementation behavior not covered by `docs/design/`.
    - Reject vague, ungrounded, stale, or purely stylistic candidates.
@@ -77,7 +86,7 @@ Keep these summaries short enough to paste into every later subagent prompt:
 
 ```text
 Known accepted findings so far:
-- K1: <root cause>; affects <paths/APIs>; evidence <one line>; status <accepted/rechecking>.
+- K1: <root cause>; affects <paths/APIs/permalinks>; evidence <one line>; status <accepted/rechecking>.
 - K2: ...
 
 Known rejected / false-positive candidates:
@@ -97,13 +106,13 @@ Update the summaries after each main-agent triage and before each recheck. Never
 
 ```markdown
 ## Summary
-<One paragraph on audit scope and severe stopping state.>
+<One paragraph on audit scope, audited commit, and severe stopping state.>
 
 ## Accepted Findings
 ### 1. <severity>: <root cause>
 - Location: <file:line>
 - Rule: <REPOSITORY_RULES.md / AGENTS.md rule>
-- Evidence: <specific behavior or source path>
+- Evidence: <specific behavior with commit-pinned source/doc permalink>
 - Impact: <why this matters>
 - Suggested next check/fix: <concrete direction, pseudocode, or short code sketch>
 
@@ -134,7 +143,7 @@ that a reviewer can evaluate the change without opening the issue first:
 ## Remediated Findings
 ### 1. <severity>: <root cause>
 - Issue/audit finding: <issue number and finding id/title>
-- Current behavior: <short explanation plus precise file:line>
+- Current behavior: <short explanation plus precise commit-pinned file:line permalink>
 - Relevant current code:
   ```rust
   <minimal quoted snippet, only the lines needed to understand the bug>
@@ -173,6 +182,7 @@ For non-Rust files, replace the fenced language with the correct language or
 | Creating multiple issues | Maintain one aggregated issue or issue body. |
 | Stopping at the aggregate issue | Implement a coherent remediation slice and open one standalone PR. |
 | Writing a PR body that relies on the issue | Include current behavior, relevant snippets, fix sketch, verification, and deferred findings in the PR itself. |
+| Linking to moving branch line numbers | Use commit-pinned GitHub permalinks for every source/doc line reference. |
 | Accepting rule claims without source evidence | Require `file:line`, rule, impact, and local verification. |
 
 ## Reference

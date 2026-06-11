@@ -9,6 +9,9 @@ You are a lightweight source-audit subagent for tensor4all-rs.
 
 Scope:
 - Repository: /home/shinaoka/tensor4all/tensor4all-rs
+- Audited commit: <full git commit hash verified to exist on GitHub>
+- Audit target confirmation: <origin/main | user-confirmed non-origin/main ref/hash>
+- Permalink base: https://github.com/tensor4all/tenferro-rs/blob/<full git commit hash>/
 - Files/directories: <exact list>
 - Rules to check: README.md, REPOSITORY_RULES.md, AGENTS.md excerpts below.
 
@@ -29,6 +32,7 @@ Output possible issues only. Do not edit files. Do not create issues. Do not ass
 For each candidate:
 - id: local candidate id
 - file:line
+- permalink: commit-pinned GitHub link for `file:line` when possible
 - rule: violated rule or invariant
 - evidence: concrete source/API-doc evidence with a short snippet or precise line summary
 - impact: likely consequence if real
@@ -53,6 +57,9 @@ You are a lightweight recheck subagent for tensor4all-rs.
 
 Scope:
 - Repository: /home/shinaoka/tensor4all/tensor4all-rs
+- Audited commit: <full git commit hash verified to exist on GitHub>
+- Audit target confirmation: <origin/main | user-confirmed non-origin/main ref/hash>
+- Permalink base: https://github.com/tensor4all/tenferro-rs/blob/<full git commit hash>/
 - Files/directories or rg queries: <exact list>
 
 Context summaries:
@@ -74,6 +81,7 @@ For each candidate:
 - id
 - relation: new-root-cause | broader-scope | possible-duplicate | refutation
 - file:line
+- permalink: commit-pinned GitHub link for `file:line` when possible
 - evidence: short snippet or precise line summary
 - impact
 - confidence
@@ -92,10 +100,11 @@ For every candidate:
 2. Check whether the claim is a duplicate of an accepted root cause.
 3. Check whether the claim is already tracked by a related GitHub issue.
 4. Check whether the claim matches a rejected false positive and whether new evidence changes that decision.
-5. Search related files with the candidate's `related_search` or a better `rg` query.
-6. Validate or rewrite the candidate's `pr_context` from direct source/API-doc evidence. Do not preserve guessed snippets or fix sketches.
-7. Decide final severity and record the rationale.
-8. Update the accepted-finding, false-positive, and related-issue summaries before the next recheck.
+5. Verify or create the commit-pinned permalink for each accepted or rejected `file:line`.
+6. Search related files with the candidate's `related_search` or a better `rg` query.
+7. Validate or rewrite the candidate's `pr_context` from direct source/API-doc evidence. Do not preserve guessed snippets or fix sketches.
+8. Decide final severity and record the rationale.
+9. Update the accepted-finding, false-positive, and related-issue summaries before the next recheck.
 
 Keep main-agent source reads minimal. If a candidate needs broad source reading,
 send a targeted recheck subagent instead of expanding the main context.
