@@ -27,7 +27,7 @@ Task:
 Inspect only your assigned scope for possible repository-rule violations, correctness bugs, missing path coverage, stale docs/examples, hidden dense materialization, index identity mistakes, C API error-loss patterns, public API drift, or unsafe layering.
 Use the context summaries to avoid rediscovering already tracked issues or already rejected false positives. Report an accepted or rejected item only if you find new evidence, broader affected paths, a refutation, or a distinct root cause.
 
-Output possible issues only. Do not edit files. Do not create issues. Do not assign final severity.
+Output possible issues only. Do not edit files. Do not create issues. Do not assign final severity or call a candidate High/Critical.
 
 For each candidate:
 - id: local candidate id
@@ -75,7 +75,7 @@ Look for new possible issues, broader affected paths, or evidence that a known f
 Preserve all known-finding paths, APIs, and evidence exactly as provided. If you inspect additional likely-related paths, list them as recheck scope or new evidence, not as rewritten known facts.
 Do not repeat rejected false positives unless you can point to new evidence or explain why the prior rejection no longer applies.
 
-Output possible issues only. Do not edit files. Do not create issues. Do not assign final severity.
+Output possible issues only. Do not edit files. Do not create issues. Do not assign final severity or call a candidate High/Critical.
 
 For each candidate:
 - id
@@ -103,8 +103,10 @@ For every candidate:
 5. Verify or create the commit-pinned permalink for each accepted or rejected `file:line`.
 6. Search related files with the candidate's `related_search` or a better `rg` query.
 7. Validate or rewrite the candidate's `pr_context` from direct source/API-doc evidence. Do not preserve guessed snippets or fix sketches.
-8. Decide final severity and record the rationale.
-9. Update the accepted-finding, false-positive, and related-issue summaries before the next recheck.
+8. Decide evidence level: Confirmed, Source-risk, or Policy/doc gap.
+9. Decide user-impact severity separately from remediation priority. High/Critical requires confirmed user-visible behavior, not just a broad repository-rule violation.
+10. Record why the finding is not higher or lower.
+11. Update the accepted-finding, false-positive, and related-issue summaries before the next recheck.
 
 Keep main-agent source reads minimal. If a candidate needs broad source reading,
 send a targeted recheck subagent instead of expanding the main context.

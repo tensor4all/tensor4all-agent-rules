@@ -45,7 +45,7 @@ Audit tensor4all-rs by using lightweight subagents as broad source scanners, whi
    - Use `gpt-5.4-mini` when the user asks for GPT5.x mini unless a newer mini model is explicitly available and requested.
    - Give each subagent exact files or directories, relevant rule excerpts, and the prompt pattern in `references/audit-prompts.md`.
    - Include concise summaries of related GitHub issues, already accepted findings, and rejected false positives. Use empty summaries for the first pass if none exist yet.
-   - Require `possible_issue` output with `file:line`, violated rule, short evidence, impact, confidence, and a related search. Forbid fixes and final severity labels.
+   - Require `possible_issue` output with `file:line`, violated rule, short evidence, impact, confidence, and a related search. Forbid final severity labels; subagents may suggest likely tests or fix sketches but do not decide user-impact severity.
 
 3. Main-agent triage.
    - Merge candidates by root cause, not by file count.
@@ -56,15 +56,24 @@ Audit tensor4all-rs by using lightweight subagents as broad source scanners, whi
    - Reject vague, ungrounded, stale, or purely stylistic candidates.
    - Record rejected candidates in the false-positive summary with the original claim, cited path, rejection reason, and what evidence would make it worth revisiting.
    - For every accepted finding, capture enough PR context to make the future PR standalone: current code snippet or precise behavior, proposed update sketch, expected changed files, and validation plan.
-   - Assign final severity:
-     - Critical/High: likely wrong public behavior, data corruption, panics across valid inputs, C API error loss, hidden unbounded dense materialization, index identity violations, documented examples that cannot run, or repository-rule violations with broad blast radius.
-     - Medium/Low: real but local, non-blocking, or incomplete evidence.
+   - Classify both evidence level and user-impact severity. Do not collapse repository-rule priority into bug severity.
+   - Evidence levels:
+     - Confirmed: runnable reproducer, failing test, direct public API path, measured performance cliff, or source proof of a panic/data-loss path with no plausible guard.
+     - Source-risk: precise source evidence shows a plausible bug or rule violation, but user-visible failure still needs a reproducer, test, measurement, or broader context.
+     - Policy/doc gap: documentation, coverage, oracle, checklist, or tooling drift without evidence that current runtime behavior is wrong.
+   - User-impact severity:
+     - Critical: confirmed data corruption, unsound memory behavior, severe security issue, or wrong result across normal valid public inputs.
+     - High: confirmed public wrong behavior, panic on valid public input, C API error loss that hides failures, silent invariant loss, or measured/unbounded dense materialization on a realistic public path.
+     - Medium: real repository-rule violation or plausible source-risk with broad maintenance/regression risk, but no confirmed severe user-visible failure yet.
+     - Low: narrow edge-case validation ordering, diagnostics quality, local docs drift, incomplete examples/tooling scope, or low-impact coverage gaps.
+   - Never assign High solely because a repository rule is violated. Escalate rule-compliance findings to High only when the evidence also proves a confirmed High user-impact path.
 
-4. Iterate until severe findings stop.
-   - If any Critical/High finding is accepted, update the known-issues summary and dispatch targeted mini subagents to scan related files, sibling APIs, tests, docs, and analogous patterns.
+4. Iterate until confirmed severe findings stop.
+   - If any Confirmed Critical/High finding is accepted, update the known-issues summary and dispatch targeted mini subagents to scan related files, sibling APIs, tests, docs, and analogous patterns.
    - Pass only the short accepted-finding, false-positive, and related-issue summaries, not the full issue draft or issue bodies.
-   - Repeat triage and targeted scans until a full or targeted pass produces no new accepted Critical/High findings.
-   - Do not stop merely because subagents reported nothing; the main agent must confirm coverage and that each accepted severe root cause had a related-pattern scan.
+   - Repeat triage and targeted scans until a full or targeted pass produces no new accepted Confirmed Critical/High findings.
+   - For Medium source-risks, run targeted rechecks when they could plausibly become Confirmed High; otherwise keep them as remediation backlog items.
+   - Do not stop merely because subagents reported nothing; the main agent must confirm coverage and that each accepted confirmed severe root cause had a related-pattern scan.
 
 5. Aggregate one issue.
    - Keep one issue body with a concise summary, accepted findings, evidence, impact, and suggested next checks or fix sketches.
@@ -109,11 +118,12 @@ Update the summaries after each main-agent triage and before each recheck. Never
 <One paragraph on audit scope, audited commit, and severe stopping state.>
 
 ## Accepted Findings
-### 1. <severity>: <root cause>
+### 1. <severity> / <evidence level>: <root cause>
 - Location: <file:line>
 - Rule: <REPOSITORY_RULES.md / AGENTS.md rule>
 - Evidence: <specific behavior with commit-pinned source/doc permalink>
 - Impact: <why this matters>
+- Why not higher/lower: <short severity rationale based on confirmed behavior vs source-risk/policy gap>
 - Suggested next check/fix: <concrete direction, pseudocode, or short code sketch>
 
 ## Lower-Severity Notes
@@ -141,7 +151,7 @@ that a reviewer can evaluate the change without opening the issue first:
 <What this PR fixes, which audit issue it partially or fully remediates, and why this slice is coherent.>
 
 ## Remediated Findings
-### 1. <severity>: <root cause>
+### 1. <severity> / <evidence level>: <root cause>
 - Issue/audit finding: <issue number and finding id/title>
 - Current behavior: <short explanation plus precise commit-pinned file:line permalink>
 - Relevant current code:
@@ -183,6 +193,7 @@ For non-Rust files, replace the fenced language with the correct language or
 | Stopping at the aggregate issue | Implement a coherent remediation slice and open one standalone PR. |
 | Writing a PR body that relies on the issue | Include current behavior, relevant snippets, fix sketch, verification, and deferred findings in the PR itself. |
 | Linking to moving branch line numbers | Use commit-pinned GitHub permalinks for every source/doc line reference. |
+| Treating rule violations as High bugs | Separate evidence level, user-impact severity, and remediation priority; High needs confirmed user-visible impact. |
 | Accepting rule claims without source evidence | Require `file:line`, rule, impact, and local verification. |
 
 ## Reference
