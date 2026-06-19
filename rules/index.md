@@ -9,8 +9,8 @@ load language-specific rules when the task touches that language.
   layering, dependency boundaries, and repository-local overrides.
 - [`common/performance.md`](common/performance.md): general performance review
   checklist for tensor, compiler, cache, and backend work.
-- [`common/docs-and-tests.md`](common/docs-and-tests.md): examples, tests,
-  benchmarks, and validation quality.
+- [`common/docs-and-tests.md`](common/docs-and-tests.md): documentation audits,
+  examples, tests, benchmarks, and validation quality.
 
 ## Rust
 
