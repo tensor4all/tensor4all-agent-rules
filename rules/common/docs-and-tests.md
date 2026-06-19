@@ -10,6 +10,13 @@
 - Use the findings to improve the docs or record follow-up issues before
   treating the documentation as complete. After updating user-facing docs, note
   briefly to the user or maintainer when this protocol is worth running.
+- Stronger variant: when the question is whether the docs are enough to *use*
+  the project (not just understand it), run a source-blind build test — have the
+  doc-only agent write a minimal integration from the compiled docs alone, then
+  compile-check that code against the real project. An explain-only audit can
+  pass while a doer is still blocked (for example, missing trait or function
+  signatures, or how to construct core objects); compiling the doc-faithful code
+  surfaces those gaps concretely.
 
 ## Examples
 
