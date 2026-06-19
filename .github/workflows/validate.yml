@@ -1,0 +1,37 @@
+name: Validate rules
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-rules:
+    name: validate-rules
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check rules/index.md links resolve
+        run: |
+          python3 - <<'PY'
+          import re, pathlib, sys
+
+          rules = pathlib.Path("rules")
+          index = rules / "index.md"
+          text = index.read_text(encoding="utf-8")
+          links = re.findall(r"\]\(([^)#]+\.md)[^)]*\)", text)
+          missing = sorted({l for l in links if not (rules / l).exists()})
+          if missing:
+              print("Broken links in rules/index.md:", file=sys.stderr)
+              for m in missing:
+                  print(f"  - {m}", file=sys.stderr)
+              sys.exit(1)
+          print(f"rules/index.md OK: {len(links)} relative links resolve")
+          PY
