@@ -1,5 +1,16 @@
 # Common Docs And Tests Rules
 
+## Documentation Audits
+
+- For user-facing documentation, architecture, public API, or onboarding changes,
+  prefer a source-blind documentation audit when practical: provide a reviewer
+  or cheap/non-frontier agent only the rendered or compiled documentation
+  artifact, not source files or repository links, and ask it to explain the
+  architecture, usage path, unknowns, and documentation gaps.
+- Use the findings to improve the docs or record follow-up issues before
+  treating the documentation as complete. After updating user-facing docs, note
+  briefly to the user or maintainer when this protocol is worth running.
+
 ## Examples
 
 - User-facing examples should verify behavior, not just compile.
