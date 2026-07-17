@@ -40,6 +40,27 @@
 - Do not relax tolerances, skip failing coverage, or remove checks without a
   clear reason.
 
+## Local And Hosted Validation
+
+- Ordinary local development and focused edit-test loops should use
+  non-release builds with incremental compilation enabled. Keep local checks
+  proportional to the changed surface instead of requiring every contributor
+  to rebuild and run the complete workspace before each pull request.
+- Local pull-request preparation should run formatting and focused tests for
+  changed code, relevant documentation checks for documentation-only changes,
+  and focused CI-helper checks for CI-only changes. Unknown paths should fall
+  back to the conservative code-change policy.
+- Hosted CI owns comprehensive workspace tests, coverage enforcement, feature
+  and backend matrices, documentation builds, hardware-dependent tests, and
+  clean builds with incremental compilation disabled.
+- Use release mode locally when optimization semantics matter: benchmarks,
+  performance claims, release-only failures, unsafe or optimization-sensitive
+  behavior, or an explicit maintainer request. Release mode is not the default
+  for ordinary correctness-oriented edit-test loops.
+- Repository-local policy may require stricter local validation for a specific
+  project or change class. Such overrides should explain why hosted CI alone is
+  insufficient for that risk.
+
 ## Benchmarks
 
 - Use release-mode benchmarks for performance claims.
