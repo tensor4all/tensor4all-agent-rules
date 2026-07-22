@@ -11,6 +11,9 @@ load language-specific rules when the task touches that language.
   checklist for tensor, compiler, cache, and backend work.
 - [`common/docs-and-tests.md`](common/docs-and-tests.md): documentation audits,
   examples, tests, benchmarks, and validation quality.
+- [`common/provenance.md`](common/provenance.md): recording references to
+  third-party code in the source, copyright compliance for ports and
+  translations, and scientific credit via provenance and citation policies.
 
 ## Rust
 
