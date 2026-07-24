@@ -13,7 +13,8 @@ load language-specific rules when the task touches that language.
   examples, tests, benchmarks, and validation quality.
 - [`common/provenance.md`](common/provenance.md): recording references to
   third-party code in the source, copyright compliance for ports and
-  translations, and scientific credit via provenance and citation policies.
+  translations, scientific credit via provenance and citation policies, and
+  permission-gated upstream bug feedback.
 
 ## Rust
 
