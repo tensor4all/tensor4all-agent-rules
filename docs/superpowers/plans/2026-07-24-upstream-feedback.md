@@ -23,6 +23,7 @@
 
 **Files:**
 - Modify: `rules/common/provenance.md`
+- Modify: `rules/index.md`
 
 **Interfaces:**
 - Consumes: the provenance policy linked from `rules/index.md`
@@ -79,7 +80,29 @@ Run the Python command from Step 1.
 
 Expected: PASS with exit status 0 and no output.
 
-- [ ] **Step 4: Run repository validation**
+- [ ] **Step 4: Advertise the policy in the rules index**
+
+Extend the `common/provenance.md` description in `rules/index.md` to include:
+
+```text
+permission-gated upstream bug feedback
+```
+
+Run:
+
+```bash
+python3 - <<'PY'
+from pathlib import Path
+
+text = " ".join(Path("rules/index.md").read_text(encoding="utf-8").split())
+required = "permission-gated upstream bug feedback"
+assert required in text, f"rules index does not advertise: {required}"
+PY
+```
+
+Expected: PASS with exit status 0 and no output.
+
+- [ ] **Step 5: Run repository validation**
 
 Run:
 
@@ -101,14 +124,14 @@ git diff --check
 
 Expected: `rules/index.md OK: 10 relative links resolve`; `git diff --check` exits successfully.
 
-- [ ] **Step 5: Commit the rule**
+- [ ] **Step 6: Commit the rule**
 
 ```bash
-git add rules/common/provenance.md
+git add rules/common/provenance.md rules/index.md
 git commit -m "rules: require approval for upstream feedback"
 ```
 
-Expected: one commit containing only the provenance policy update.
+Expected: one commit containing the provenance policy and its index description.
 
 ### Task 2: Verify and merge the completed branch
 
@@ -116,6 +139,7 @@ Expected: one commit containing only the provenance policy update.
 - Verify: `docs/superpowers/specs/2026-07-24-upstream-feedback-design.md`
 - Verify: `docs/superpowers/plans/2026-07-24-upstream-feedback.md`
 - Verify: `rules/common/provenance.md`
+- Verify: `rules/index.md`
 
 **Interfaces:**
 - Consumes: the validated `provenance-rules` branch
