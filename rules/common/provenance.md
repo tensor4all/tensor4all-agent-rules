@@ -45,3 +45,19 @@ of writing, not reconstructed later.
 - Follow the affected repository's citation policy style where one exists:
   cite original algorithm papers, cite upstream library papers, and apply
   upstream citation policies recursively.
+
+## Return Upstream Bug Findings
+
+- When work reveals a likely bug in a library used as a reference,
+  implementation guide, or source of a port, report the finding and supporting
+  evidence to the user. Recommend giving the finding back to upstream as an
+  issue or pull request.
+- Ask for explicit user permission before preparing an upstream-facing issue
+  draft or pull-request patch. If permission is not given, do not begin that
+  upstream-facing draft or patch.
+- Show the completed draft or patch to the user, then ask for separate explicit
+  permission immediately before creating the issue or pull request upstream.
+  Permission to prepare a draft does not authorize external submission.
+- These approval requirements govern upstream-facing preparation and
+  submission. They do not by themselves restrict repository-local
+  investigation or fixes already requested by the user.
