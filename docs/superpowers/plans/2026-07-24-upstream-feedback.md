@@ -37,13 +37,14 @@ python3 - <<'PY'
 from pathlib import Path
 
 text = Path("rules/common/provenance.md").read_text(encoding="utf-8")
+normalized = " ".join(text.split())
 required = [
     "## Return Upstream Bug Findings",
     "before preparing an upstream-facing issue draft or pull-request patch",
     "separate explicit permission immediately before creating the issue or pull request",
     "Permission to prepare a draft does not authorize external submission.",
 ]
-missing = [fragment for fragment in required if fragment not in text]
+missing = [fragment for fragment in required if fragment not in normalized]
 assert not missing, f"missing upstream-feedback policy fragments: {missing}"
 PY
 ```
