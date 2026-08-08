@@ -60,6 +60,22 @@
 - Repository-local policy may require stricter local validation for a specific
   project or change class. Such overrides should explain why hosted CI alone is
   insufficient for that risk.
+- Default build profiles should not carry full debug information. Keep the
+  default local and release profiles lean; provide an opt-in profile variant
+  (or a documented one-command override) for the sessions that actually attach
+  a debugger. Line-table-only debug information is usually enough for readable
+  backtraces at a fraction of the size. CI profiles used for comprehensive
+  runs should strip symbols.
+- When hosted CI owns the measurement for a gate (coverage is the canonical
+  case), the local pre-PR gate may be attestation-based: an explicit flag or
+  statement that the changed code was reviewed for that property. The
+  attestation must be explicit and the check must fail when it is absent;
+  silence is not attestation.
+- Build directories accumulate stale artifacts that no setting prevents:
+  dependency version and feature churn leaves orphaned object files behind.
+  Repositories should document a pruning mechanism (an age-based sweep tool or
+  a periodic full clean) and agents should propose a cleanup when a build
+  directory's size is clearly dominated by artifacts no current build uses.
 
 ## Benchmarks
 
