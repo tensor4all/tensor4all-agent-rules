@@ -46,6 +46,24 @@
 - Prefer structural cache keys and exact equality checks over formatting whole
   programs into strings on every lookup.
 
+## Build Profiles And Target Hygiene
+
+- Default `[profile.dev]` and `[profile.test]` should set `debug = 0` while
+  keeping `debug-assertions` and `overflow-checks` enabled, and keep
+  incremental compilation on for edit-test loops. Provide a one-command
+  override (for example `CARGO_PROFILE_DEV_DEBUG=1`) or an opt-in profile for
+  debugger sessions.
+- `[profile.release] debug = true` in a workspace whose normal verification
+  runs in release mode multiplies the build directory by gigabytes. Prefer
+  `debug = "line-tables-only"` for readable backtraces, with a separate
+  `release-debug` inheriting profile for full debugger information.
+- The profile used by comprehensive CI runs should disable incremental
+  compilation and set `strip = "symbols"`.
+- Dependency `rev =` bumps and feature churn leave orphaned rlibs and test
+  binaries in `target/` that no profile setting removes. Document the pruning
+  mechanism (an age-based sweep tool, or a periodic `cargo clean`), and
+  propose a cleanup when `target/` growth is dominated by stale artifacts.
+
 ## GPU Kernels
 
 - Launch domains should cover the output or update domain. Avoid
