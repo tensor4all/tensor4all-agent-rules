@@ -15,6 +15,10 @@ load language-specific rules when the task touches that language.
   third-party code in the source, copyright compliance for ports and
   translations, scientific credit via provenance and citation policies, and
   permission-gated upstream bug feedback.
+- [`common/agent-consumers.md`](common/agent-consumers.md): serving downstream
+  users and coding agents of user-facing libraries: bundled usage skills,
+  remedy clauses in error messages, package-index metadata gates, and
+  verified llms.txt indexes.
 
 ## Rust
 
@@ -36,6 +40,9 @@ load language-specific rules when the task touches that language.
 
 - Do not bulk-load the entire repository by default.
 - Load common rules for any cross-repository implementation work.
+- Load agent-consumers rules when working on docs sites, packaging or release
+  metadata, error messages, usage skills, or README quickstarts of a
+  user-facing library.
 - Load Rust rules for Rust crates, C API layers, backend code, or Rust docs.
 - Load Julia rules for Julia packages, wrappers, examples, or docs.
 - If project-local rules conflict with these shared rules, follow the more
