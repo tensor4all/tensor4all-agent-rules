@@ -6,7 +6,8 @@ load language-specific rules when the task touches that language.
 ## Common
 
 - [`common/repository.md`](common/repository.md): source of truth, API surface,
-  layering, dependency boundaries, and repository-local overrides.
+  layering, dependency boundaries, publication/release safety, and
+  repository-local overrides.
 - [`common/performance.md`](common/performance.md): general performance review
   checklist for tensor, compiler, cache, and backend work.
 - [`common/docs-and-tests.md`](common/docs-and-tests.md): documentation audits,
