@@ -86,3 +86,51 @@
   shape, length, or rank can hide wrong-but-shaped results.
 - Keep setup cost separate from the operation being measured, or state that the
   benchmark intentionally includes setup cost.
+
+## Doc Examples
+
+- Every public type, trait, and function must include minimal but sufficient
+  usage examples in its doc comments (`/// # Examples`). `#[doc(hidden)]`
+  items are exempt.
+- Doc examples (`/// # Examples`) must NOT use `ignore` or `no_run`
+  attributes. Every example must compile AND run as a doctest.
+- An example must demonstrate real usage. Examples consisting only of path or
+  assignment statements (for example `let _method = Type::method;`) satisfy
+  the doctest gate without documenting anything and are not acceptable.
+- Use `compile_fail` only for examples that intentionally demonstrate compile
+  errors. If an example cannot run as a doctest, refactor it until it can.
+- When a canonical public API changes from infallible or panicking to
+  `Result`-returning, update its user-facing examples, tutorials, and guides to
+  propagate recoverable errors with `?` or handle the documented error
+  explicitly. Do not preserve the old call shape by appending `unwrap()` or
+  `expect()`. Tests may still use an intentional assertion boundary, and an
+  example may unwrap only a locally proven invariant whose proof is explicit.
+- Non-trivial user-facing code snippets must have an executable source of
+  truth: prefer including a checked example, test, or doctest instead of
+  copying code into Markdown by hand. If a Markdown page must contain a copied
+  snippet, add an automated sync or extraction check that fails when the
+  snippet drifts from the executable source. Crate READMEs with code fences
+  need an executable sync mechanism (for example
+  `#![doc = include_str!("../README.md")]`).
+- Guide code that demonstrates a workflow should compile in CI. When runtime
+  execution requires special hardware or external libraries, CI must still
+  compile-check the example with the required feature flags, and the guide must
+  document the command that runs the example on a correctly configured machine.
+- Examples that call backend operations should bind the backend to a local
+  variable and reuse it for related operations instead of chaining
+  `Backend::new().op(...)` beyond a single trivial construction example.
+
+## Public Result Error Documentation Gate
+
+- Every public function, inherent method, and public-trait method returning a
+  `Result` must document a `# Errors` section. The section must name the
+  concrete error variants or failure conditions the caller can observe; a
+  generic "returns an error on failure" sentence is insufficient.
+- Documentation for traced or symbolic APIs must describe validation deferred
+  to compile or execution and identify the applicable phase when that behavior
+  is part of the contract. Intentional panics use `# Panics`; deferred symbolic
+  checks use `# Deferred errors`.
+- `scripts/check-public-error-docs.py` audits the full Rust workspace and the
+  Rust files changed by a PR and is a required CI gate. Keep the audit enabled
+  without clippy or source-level allowlists; add the concrete documentation at
+  the API source instead.

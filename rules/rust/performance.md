@@ -74,3 +74,32 @@
 - Runtime shape/stride metadata should flow through backend bindings rather
   than being duplicated as large compile-time parameter sets unless the
   specialization is intentional.
+
+## Uninitialized And Scratch Acquisition
+
+- Raw uninitialized acquisition must be an `unsafe fn` or return
+  `MaybeUninit`-typed storage. Never hide uninitialized acquisition inside a
+  safe `fn` that returns live `T` values. The unsafe/`MaybeUninit` path must be
+  documented as full-overwrite-only: every element is written before any read,
+  so a caller must not read uninitialized slots.
+- Expose a separate zeroed/initialized acquisition for read-before-write
+  callers.
+- Never fix stale reads by unconditional zero-fill of a shared hot-path
+  acquisition, and do not zero-initialize buffers that are provably fully
+  overwritten.
+- Add regression coverage for both contracts: the uninitialized path stays
+  unsafe or `MaybeUninit`-typed, and the zeroed path is safe.
+
+## Threading Principles
+
+- Keep one repository source of truth for parallel thresholds (a declared
+  policy mechanism), not per-op copies of the same decision.
+- Short-circuit to the serial kernel when the effective thread count is one.
+- Library kernels must not reach for an ambient global thread pool outside the
+  repository's declared policy mechanism. Non-provider parallel work must
+  execute within the repository/runtime-owned execution context, so thread
+  policy (including one-thread serial execution) is decided at that single
+  source of truth.
+- Provider-owned threading (BLAS/OpenMP-style parallelism) is controlled by
+  provider variables documented per repository; library code must not derive
+  its own pool policy from an ambient runtime.
