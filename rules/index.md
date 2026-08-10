@@ -6,12 +6,15 @@ load language-specific rules when the task touches that language.
 ## Common
 
 - [`common/repository.md`](common/repository.md): source of truth, API surface,
-  layering, dependency boundaries, publication/release safety, and
-  repository-local overrides.
+  layering, dependency boundaries, publication/release safety, invariant
+  markers, API evolution, output-update naming, file organization, work logs,
+  final cross-phase audits, and repository-local overrides.
 - [`common/performance.md`](common/performance.md): general performance review
-  checklist for tensor, compiler, cache, and backend work.
+  checklist, the performance-gated experiment protocol, cache ownership, and
+  complexity budget for tensor, compiler, cache, and backend work.
 - [`common/docs-and-tests.md`](common/docs-and-tests.md): documentation audits,
-  examples, tests, benchmarks, and validation quality.
+  doc-example policy (no `ignore`/`no_run`), the public `Result` error-doc
+  gate, tests, benchmarks, and validation quality.
 - [`common/provenance.md`](common/provenance.md): recording references to
   third-party code in the source, copyright compliance for ports and
   translations, scientific credit via provenance and citation policies, and
@@ -23,11 +26,13 @@ load language-specific rules when the task touches that language.
 
 ## Rust
 
-- [`rust/index.md`](rust/index.md): Rust-specific entry point.
+- [`rust/index.md`](rust/index.md): Rust-specific entry point; unsafe
+  boundary, unit-test organization, and debug/enum hygiene.
 - [`rust/performance.md`](rust/performance.md): Rust tensor/backend
-  performance rules, including allocation, slicing, linalg, and GPU kernels.
-- [`rust/numerical.md`](rust/numerical.md): numerical correctness and AD
-  validation expectations.
+  performance rules, including allocation, slicing, linalg, GPU kernels,
+  uninitialized/scratch acquisition, and threading principles.
+- [`rust/numerical.md`](rust/numerical.md): numerical correctness, AD
+  validation expectations, and typed-error classification.
 
 ## Julia
 
