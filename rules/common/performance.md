@@ -22,6 +22,13 @@ target.
   views over repeated per-element coordinate decoding.
 - Cache keys should be compact structural fingerprints or incremental hashes,
   not debug strings for whole programs or large objects.
+- Do not use raw index vectors (`Vec<usize>`, `Vector{Int}`, or equivalent
+  multi-index buffers) directly as keys of persistent or hot-path caches.
+  Every lookup then pays an O(length) hash and equality walk, every insert
+  clones the vector, and the retained keys can rival the cached payload in
+  memory. Encode the index tuple as a compact integer key instead, for
+  example a mixed-radix flat index with the integer width selected from the
+  index-space size, or intern to stable IDs when the key space is unbounded.
 - Long-lived caches need explicit owners, bounded defaults, clear/configure
   APIs, and useful stats.
 

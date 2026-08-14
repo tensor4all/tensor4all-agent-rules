@@ -19,6 +19,11 @@
   production paths unless the API is explicitly dense/reference/debug.
 - Long tensor-network tests and examples should use scalable residuals,
   sampled evaluations, or structural checks rather than full dense conversion.
+- Do not key persistent caches by `Vector{Int}` multi-indices: each lookup
+  hashes and compares the whole vector, and retained keys cost O(length)
+  memory each. Encode the multi-index as a mixed-radix flat integer, widening
+  to `Int128` or a fixed-width big integer when the index space overflows, or
+  intern to stable IDs.
 
 ## Bindings
 
