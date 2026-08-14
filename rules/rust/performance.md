@@ -45,6 +45,11 @@
   rescanning later instructions for every slot.
 - Prefer structural cache keys and exact equality checks over formatting whole
   programs into strings on every lookup.
+- Do not key persistent caches by `Vec<usize>` or other owned index vectors:
+  each lookup hashes and compares the whole vector and each insert clones it.
+  Encode multi-indices as mixed-radix flat integers with the width selected
+  from the index-space size (`u64`, `u128`, then extended integers such as
+  bnum's `U256`/`U512`/`U1024`), as in tensor4all-simplett's `FlatIndexer`.
 
 ## Build Profiles And Target Hygiene
 
