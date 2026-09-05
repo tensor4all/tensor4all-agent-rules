@@ -10,6 +10,24 @@
 - Repository-local rules override shared rules when they are more specific.
   Shared rules should capture durable cross-project policy.
 
+## Proportionate Workflow
+
+- Work directly by default. Subagents, panels, and independent AI reviews are
+  optional and require an explicit user request; using different model families
+  is not a mandatory gate.
+- Read the applicable rules once and revisit affected sections when scope changes.
+  Do not repeatedly load unchanged policy files before every small edit.
+- Routine fixes need a focused test and a self-review of the coherent final diff,
+  not a separate design approval. Record a short design for changes to public
+  contracts, architecture, or safety-critical boundaries.
+- A correction within the agreed design does not restart design approval or a
+  full review. Recheck the affected behavior; reopen decisions only when their
+  scope or semantics change.
+- If work stalls, reassess the approach and report blockers rather than adding
+  more infrastructure or repeating unsuccessful delegation/review cycles.
+- These workflow defaults do not waive required CI, human approvals, numerical
+  correctness, memory safety, or data preservation.
+
 ## Public Surface
 
 - Keep public APIs deliberate and small. Do not expose implementation details
@@ -98,9 +116,9 @@ to every repository that publishes:
 - Audit tooling and audit prompts, human or AI, must not flag a site governed
   by an `// INVARIANT:` marker as a violation. They must instead check whether
   the stated invariant still holds and report only when it does not.
-- Rejecting an audit finding as a false positive is complete only when the
-  marker (or a source-contract test) has landed at the site, per the
-  false-positive ledger rule in Work Logs And Design Records.
+- Reject unsupported findings with source evidence. Add a marker or test only
+  when the invariant needs clarification or regression protection; an incorrect
+  review report alone does not require a code change.
 
 ## API Evolution
 
@@ -140,93 +158,37 @@ to every repository that publishes:
 
 ## Work Logs And Design Records
 
-- Nontrivial refactors, cleanup streams, AI-assisted implementation, and PRs
-  that make explicit design tradeoffs must leave a curated work log under
-  `docs/worklogs/`. The work log should record the session summary, code and
-  documents read, reference implementations considered, decisions made,
-  alternatives rejected or deferred, verification performed, and remaining
-  risks.
-- Work logs are not raw transcripts and are not implementation plans. They are
-  reviewer-facing decision records for the completed work. Keep them concise
-  enough to review, but specific enough that a later reviewer can understand
-  why an abstraction, split, macro, descriptor, public API choice, or deferral
-  was selected.
-- PR bodies for work that requires a work log must link the relevant
-  `docs/worklogs/` file. Reviewers should read linked work logs before
-  challenging scope, abstraction choices, or design intent.
+- Use a concise work log for multi-phase work or non-obvious design tradeoffs.
+  A small fix can record its rationale and checks in the PR body; AI assistance
+  alone does not require another document.
+- Record decisions, verification and unresolved risks once. Link that record
+  instead of duplicating it across a design, work log, issue and PR.
+- Work logs are curated decision records, not transcripts or per-edit approval
+  ledgers. Read a linked record when reviewing the design choices it explains.
 - When a PR establishes or changes durable design intent, update the
   appropriate document under `docs/design/` in the same PR. Use work logs for
   session-level rationale and design docs for decisions future implementation
   and review should continue to follow.
-- When a bug report or audit finding is a false positive because of an
-  intentional invariant, record the evidence in the issue or PR ledger and add
-  a nearby `// INVARIANT:` source comment (see Invariant Markers above),
-  rustdoc note, or source-contract test when that invariant is not obvious
-  from the code. Do not just skip the
-  finding; leave enough context that later humans and AI agents do not
-  rediscover the same non-bug as suspicious.
+- Explain a rejected finding briefly with source evidence. Add a nearby comment
+  or regression test when an actual non-obvious invariant warrants it; do not
+  modify correct code merely to close an inaccurate review report.
 - Before adding a new audit or repository rule, inventory nearby existing rules
   and merge, tighten, or relocate overlapping guidance when possible. Prefer
   one sharper general rule over many narrow bullets that future agents must
   reconcile.
 
-## Final Cross-Phase Multi-Agent Audit
+## Final Integration Review
 
-Human/process protocol. This section is intentionally not routed to the
-diff-scoped review bot.
+For multi-phase work, the main agent checks the integrated result against the
+agreed requirements before declaring completion. Identify the candidate state,
+relevant tests, unresolved findings and unavailable hardware. Check affected
+architecture, lifecycle, numerical, performance and documentation boundaries;
+do not create a fixed set of reviewer roles or duplicate task-level evidence.
 
-Repository-scale, multi-phase implementation programs require one final audit
-after every phase and its task-local reviews are complete, but before the
-umbrella issue or implementation branch is declared ready for integration.
+A multi-agent or cross-model audit is optional, only when explicitly requested.
+Human approval and required CI remain separate requirements. Correctness defects
+and required measurements without valid evidence still block completion.
 
-- Audit one exact candidate commit. Every report must name that commit, and an
-  auditor must not audit a lane whose implementation or task-local review it
-  performed. The lanes may run in batches when agent concurrency is limited.
-- Assign a distinct independent auditor to each required lane:
-  1. **Specification and architecture:** accepted issues, phase acceptance
-     criteria, semantic parity, lowering, and migration compatibility.
-  2. **Safety and resource lifecycle:** aliasing, unsafe boundaries,
-     lifetimes, locks, buffers, caches, and cleanup on success, error,
-     cancellation, and unwind.
-  3. **Performance and parallelism:** current-main baseline, fast paths,
-     allocations and request/container overhead, worker ownership,
-     thread-count and placement control, and backend synchronization.
-  4. **Public API and documentation:** facade boundaries, typed errors,
-     feature combinations, runnable examples, and source/checker consistency.
-  5. **Backend and hardware lanes** relevant to the repository: CPU
-     placement and resource arbitration, GPU/multi-device context ownership,
-     and cross-device failure handling when such backends exist.
-- After all lane reports, a separate integration auditor must check
-  cross-phase invariants, duplicated or contradictory findings, and the
-  closure evidence.
-- Each lane report must record the candidate commit; relevant feature,
-  toolchain, and hardware configuration; inspected files, public contracts,
-  and issue acceptance criteria; fresh commands and complete result
-  classifications; findings classified as `Critical`, `Important`, or
-  `Minor`; and explicit limitations or skipped hardware paths. Performance
-  results must be classified as `PASS`, `FAIL`, or `INCONCLUSIVE`. Do not infer
-  a pass from an implementer's earlier run. Source scanners and mutation tests
-  support, but do not replace, call-path review and runtime tests.
-- Each lane applies the repository's applicable rule sections (public boundary
-  audits, unsafe boundary, materialization/copies, performance-gated
-  experiment protocol, cache ownership, documentation policy, work logs) to
-  its scope instead of restating their checklists.
-- Environment-limited CPU, GPU, or multi-device paths must retain reproducible
-  diagnostics and an identified verification owner.
-- This gate supplements rather than replaces task-local TDD, specification
-  review, code-quality review, CI, and required performance gates.
-- The final audit passes only when every `Critical` and `Important` finding is
-  fixed and independently re-reviewed; every `Minor` finding is fixed or has a
-  written rationale and accepted tracking issue; every required performance
-  gate is `PASS`; and the integration auditor reports no unresolved
-  cross-phase contradiction. `INCONCLUSIVE` blocks promotion until a valid
-  rerun or explicit accepted scope decision is recorded.
-- The final worklog must link every lane report, the integration report, the
-  exact candidate commit, and the final verification commands.
-- Auditing is read-only: audit agents must not modify the candidate while
-  reviewing it. A finding fix creates a new exact candidate revision. Before
-  the audit can pass, every lane report must be refreshed to name and validate
-  that final revision: each auditor reviews the intervening diff, every
-  affected lane reruns its relevant evidence, and an unaffected lane may carry
-  earlier runtime evidence forward only with a recorded diff-impact rationale.
-  The separate integration auditor runs last against the same final revision.
+After a correction, review the relevant delta and rerun affected checks. Unaffected
+evidence need not be regenerated solely because the commit changed. Record why
+it still applies; do not restart every review lane for a small fix.
