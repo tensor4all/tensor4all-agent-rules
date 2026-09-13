@@ -145,13 +145,24 @@ Registry publication is irreversible. For every publishing repository:
 
 ## Work Logs And Design Records
 
-- Use a concise work log for multi-phase work or non-obvious design tradeoffs.
-  A small fix records rationale and checks in the PR body; AI assistance alone
-  requires no extra document.
-- Record decisions, verification, and unresolved risks once; link that record
-  instead of duplicating it across design, work log, issue, and PR.
-- Work logs are curated decision records, not transcripts or per-edit approval
-  ledgers. Read a linked record when reviewing the choices it explains.
+- Keep a lightweight work log for nontrivial multi-phase changes, non-obvious
+  design choices, or performance experiments. Small fixes and AI assistance
+  alone do not require one; a commit or PR explanation suffices.
+- Record the chosen approach and why, important alternatives, verification
+  conclusions, and remaining constraints or unverified areas. Do not list
+  commands run (Cargo or otherwise), files read, agent activity, or the
+  chronology of edits and reviews. Mention failed attempts only when they
+  explain a decision or remaining limitation.
+- Keep one record per change theme. Update it when decisions, conclusions, or
+  constraints change, not after every correction. Historical work logs need
+  not be rewritten to match this format.
+- Link detailed evidence or existing reproduction instructions only when
+  needed; retain special settings essential to reproduce a result. Do not
+  duplicate execution histories elsewhere to satisfy the work-log policy.
+  Required validation and performance evidence remain unchanged.
+- Link the work log from the PR rather than repeating it. Preserve the record
+  independently of squash or non-squash merge; this policy does not choose a
+  merge method. Read a linked record when reviewing the choices it explains.
 - When a PR establishes or changes durable design intent, update the relevant
   `docs/design/` document in the same PR. Work logs hold session-level
   rationale; design docs hold decisions future work must follow.
