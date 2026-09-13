@@ -69,9 +69,12 @@ Human/process protocol; intentionally not routed to the diff-scoped review bot.
 - If a predeclared host-noise or validity gate fails, the entire paired
   experiment is `INCONCLUSIVE`; reconsideration requires a complete paired
   rerun under the same protocol.
-- Record every measured case, confidence interval, validity observation, and
-  regression in the worklog. A negative or inconclusive primary result is
-  evidence; do not rewrite it as success because secondary cases improved.
+- Summarize the decision, primary result, validity, and remaining limitations
+  in the work log. Retain every measured case, confidence interval, validity
+  observation, regression, and reproduction-critical setting in the experiment
+  results, linked from the work log; do not copy the full results or command
+  history into it. A negative or inconclusive primary result is evidence; do
+  not rewrite it as success because secondary cases improved.
 - Promote only when the predeclared primary gate and all required
   non-regression/correctness gates pass. No relaxed thresholds, redefined
   primary metric, or post-hoc exclusions after seeing the candidate.
