@@ -4,7 +4,9 @@ For Rust work, read [`../common/repository.md`](../common/repository.md),
 [`../common/performance.md`](../common/performance.md), and
 [`performance.md`](performance.md). Also read [`numerical.md`](numerical.md)
 when touching numerical algorithms, linear algebra, AD rules, oracle replay,
-C API behavior, or language bindings.
+C API behavior, or language bindings. Read [`build-artifacts.md`](build-artifacts.md)
+when cleaning `target/` trees, diagnosing disk usage from build outputs, or
+working with a compiler cache around Rust builds.
 
 ## Unsafe Code Boundary
 

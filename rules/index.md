@@ -29,6 +29,8 @@ language-specific rules when the task touches that language.
   GPU kernels, uninitialized/scratch acquisition, build profiles, threading.
 - [`rust/numerical.md`](rust/numerical.md): numerical correctness, AD
   validation, typed-error classification.
+- [`rust/build-artifacts.md`](rust/build-artifacts.md): where Cargo and compiler
+  caches put build outputs; sweeping stale `target/` trees safely.
 
 ## Julia
 

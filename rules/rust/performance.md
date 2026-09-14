@@ -64,7 +64,9 @@
 - Dependency `rev =` bumps and feature churn leave orphaned rlibs and test
   binaries in `target/` that no profile setting removes. Document the pruning
   mechanism (age-based sweep tool or periodic `cargo clean`) and propose a
-  cleanup when `target/` growth is dominated by stale artifacts.
+  cleanup when `target/` growth is dominated by stale artifacts. See
+  [`build-artifacts.md`](build-artifacts.md) for what must be preserved and the
+  cache-convergence step.
 
 ## GPU Kernels
 
