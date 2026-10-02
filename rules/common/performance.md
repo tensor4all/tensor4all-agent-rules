@@ -14,6 +14,15 @@ legacy tradeoff, a reference path, or a known migration target.
 - No dense materialization scaling with an unconstrained product of tensor,
   site, batch, or index dimensions unless the API is explicitly dense,
   reference, or debug.
+- Tensor-sized loops carry no runtime mode flags. This covers
+  conjugation/op flags, zero-scale shortcuts, input and output source
+  choices, and any other boolean or enum. Dispatch once at the outer
+  boundary and specialize the loop body. Do not make a dynamic call per
+  element.
+- Elementwise, map and zip work over strided tensors uses the ecosystem's
+  shared strided-array library; there are no new hand-written traversal
+  loops in higher-level packages. Extend that library when it lacks an
+  operation.
 - No heap allocation inside hot loops: pre-allocate, reuse scratch, use views,
   or move the allocation to a documented boundary.
 - Do not zero-initialize buffers that will be fully overwritten.

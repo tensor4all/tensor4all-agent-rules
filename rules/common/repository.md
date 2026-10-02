@@ -181,6 +181,10 @@ relevant tests, unresolved findings, and unavailable hardware; check affected
 architecture, lifecycle, numerical, performance, and documentation boundaries.
 Do not create fixed reviewer roles or duplicate task-level evidence.
 
+Review the inner loops of every changed numerical path. Look for
+per-element branches, dynamic calls, allocation and coordinate decoding.
+Deferring or skipping benchmarks never waives this structural check.
+
 Multi-agent or cross-model audits are optional and only on explicit request.
 Human approval and required CI remain separate requirements. Correctness
 defects and required measurements without valid evidence still block
