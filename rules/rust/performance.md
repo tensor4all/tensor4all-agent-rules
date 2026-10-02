@@ -23,6 +23,15 @@
   close to the unsafe block and covered by boundary tests.
 - Avoid per-element `flat -> multi-index` decoding in tensor-sized loops when
   incremental index/offset traversal is possible.
+- Hoist every runtime mode out of tensor-sized loops. This includes conj
+  flags, `beta == 0`, C/D source choice and `Option`/enum operands. Use one
+  `match` at the boundary, monomorphized bodies (generics, const generics,
+  type-level ops such as strided-view `ElementOp`), and no per-element
+  `dyn Fn` call.
+- Elementwise/map/zip over strided views goes through `strided-rs`
+  (`strided-basic` `map_into`, `zip_map{2,3,4}_into`, `mul_into`, `fma`,
+  ...). Add a missing operation to strided-rs instead of hand-writing an
+  odometer loop downstream.
 
 ## Dense Layout And Linear Algebra
 
