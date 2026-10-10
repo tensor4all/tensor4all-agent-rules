@@ -70,6 +70,27 @@
   (age-based sweep or periodic full clean); agents propose a cleanup when a
   build directory is clearly dominated by artifacts no current build uses.
 
+## CI Total Time Budget
+
+- The default push and pull-request pipeline is declared to stay fast. It carries one
+  total wall-clock budget for the whole pipeline instead of per-test or per-job caps,
+  and exceeding it fails a required gate that names the slowest jobs. Do not raise the
+  budget, and do not add an individual job timeout in its place, to make a slow
+  addition fit.
+- Tests that need more than the default budget run from a scheduled nightly or weekly
+  workflow with its own bound. Mark them as heavy in the test source and keep them
+  selectable as a group, so the scheduled workflow does not need editing for every new
+  heavy test.
+- Example, benchmark, and other compile-only targets stay in the default pipeline only
+  while they are cheap. When they stop being cheap, a compile-only job keeps them
+  building on every change, and the scheduled workflow builds them.
+- When a change makes an existing test far slower — a correctness fix that now keeps
+  more pivots, larger ranks, or more sweeps, for example — the same change moves that
+  test to the scheduled workflow or makes it fast again. A suite that quietly grows
+  from minutes to an hour is a regression even while it stays green.
+- A scheduled failure is invisible to pull-request authors, so the scheduled workflow
+  files or updates an issue under a dedicated label for maintainers.
+
 ## Benchmarks
 
 - Release-mode benchmarks for performance claims.
