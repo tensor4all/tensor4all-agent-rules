@@ -22,6 +22,31 @@ Applies to any Rust crate or workspace, with or without a compiler cache.
   artifacts in **that** tree's `target/`. Deleting those is a full rebuild of
   that repository and cannot be recovered from a consumer's tree.
 
+## Debug Info Is Not A Default
+
+- DWARF, not code, is what makes build output large, and neither `cargo test`
+  nor `cargo build` reads it. Every default profile — `dev`, `test`, `release`,
+  `bench`, `ci` — keeps `debug = 0`. A session that needs symbols asks for them
+  with `CARGO_PROFILE_DEV_DEBUG=2`, or a repository offers one narrow opt-in
+  profile (`release-debug`, `profiling`).
+- `debug = 1` and `debug = "line-tables-only"` are debug info, not a
+  compromise between size and usefulness: both emit DWARF and both multiply the
+  output. Finding either on a profile that everyone builds by default is this
+  rule's finding.
+- Measured on one machine: a single `strided_kernel` dev rlib reached 1.13 GiB,
+  and the shared compiler cache held 320 GiB of `dev`-profile artifacts out of a
+  335 GiB store, with `kache stats` reporting the store 6.7x over its configured
+  limit. That limit cannot be restored while those artifacts stay hardlinked
+  into live `target/` trees, so the size is paid twice: once on disk and again in
+  what the cache refuses to evict.
+- Check the **workspace root** manifest. Cargo reads `[profile.*]` from the root
+  only and ignores a dependency's own profile block, so a vendored or upstream
+  dependency showing `debug = 1` is not the cause and must not be "fixed" to
+  change it.
+- `-Cdebuginfo` is part of the cache key, so turning it off invalidates existing
+  entries instead of serving mismatched ones; the old entries and their blocks
+  remain until the target trees holding them are removed.
+
 ## Locate Before Deleting
 
 - Enumerate real Cargo target dirs, not names: require `target/.rustc_info.json`

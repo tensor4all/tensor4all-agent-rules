@@ -62,12 +62,15 @@
 
 - Default `[profile.dev]` and `[profile.test]` set `debug = 0`, keep
   `debug-assertions` and `overflow-checks` enabled, and keep incremental
-  compilation on for edit-test loops. Provide a one-command override (e.g.
-  `CARGO_PROFILE_DEV_DEBUG=1`) or an opt-in profile for debugger sessions.
-- `[profile.release] debug = true` in a workspace whose normal verification
-  runs in release mode multiplies the build directory by gigabytes. Prefer
-  `debug = "line-tables-only"` for readable backtraces, with a separate
-  `release-debug` inheriting profile for full debugger information.
+  compilation on for edit-test loops. `debug = 1` and `debug = "line-tables-only"`
+  are debug info too — both emit DWARF — so the override is
+  `CARGO_PROFILE_DEV_DEBUG` or a named opt-in profile, never a default one.
+- No default profile carries debug info, `release` and `bench` included; it
+  multiplies the build directory and the shared compiler cache by gigabytes for
+  something no test reads. When a workspace needs readable backtraces or a
+  debugger, add one narrow profile that inherits the standard one
+  (`release-debug`, `profiling`) instead of enabling it for everyone. See
+  [`build-artifacts.md`](build-artifacts.md#debug-info-is-not-a-default).
 - The profile used by comprehensive CI runs disables incremental compilation
   and sets `strip = "symbols"`.
 - Dependency `rev =` bumps and feature churn leave orphaned rlibs and test
