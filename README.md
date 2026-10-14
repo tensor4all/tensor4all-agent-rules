@@ -25,6 +25,7 @@ rules/
   julia/
 skills/
   benchmark-campaign/
+  dependency-release-chain/
   tensor4all-rules/
   tensor4all-rules-audit/
 ```

@@ -62,15 +62,26 @@ Registry publication is irreversible. For every publishing repository:
   version.
 - The publishable-package graph must not contain a publication cycle over
   versioned edges (unversioned path dev-edges cannot create one).
-- Publication is human-only. Agents prepare and validate, then stop: never
-  execute publication or type the final confirmation.
-- Generate a guarded handoff script for the human instead of asking them to
-  retype commands: mode 0700, `bash -n` clean, non-append, restart-safe, TTY
-  required, re-runs the fail-closed preflight, then asks for one exact
-  lowercase confirmation immediately before invoking the publish helper with
-  the execute flag. Pin the helper and canonical workflow with checksums
-  computed at generation and re-verified at run time. Write the script outside
-  the release worktree when untracked files abort the release.
+- An agent may publish. It prepares and validates first, and the maintainer's
+  approval is required **per release**, given in the conversation for that
+  release: "finish this PR", "wrap up the work" or a general release request is
+  not approval to publish. When approval is not explicit, stop and report rather
+  than infer it.
+- **New packages are the case that needs care.** Never publish a package that is
+  not already on the registry without the maintainer's approval naming that
+  package; when one release contains several new packages, ask for each and
+  record the approvals. An approval is stale once the package exists but the
+  target version does not.
+- Publishing with the maintainer at the keyboard is still allowed, and often
+  preferable for a first release of a new package. A guarded handoff script is
+  the way to hand publication over without retyping commands: mode 0700,
+  `bash -n` clean, non-append, restart-safe, TTY required, re-runs the fail-closed
+  preflight, then asks for one exact lowercase confirmation immediately before
+  invoking the publish helper with the execute flag. Pin the helper and canonical
+  workflow with checksums computed at generation and re-verified at run time.
+  Write the script outside the release worktree when untracked files abort the
+  release. Whether the agent executes or hands over is the maintainer's call;
+  either way no check may be bypassed.
 - Release-time revalidation is change-aware: classify the diff between the
   previous release and the tag (helper/workflow-only, publication-metadata
   only, semantic manifest, or source/ambiguous) and run only the lane the
