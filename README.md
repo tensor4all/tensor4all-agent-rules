@@ -24,6 +24,7 @@ rules/
   rust/
   julia/
 skills/
+  benchmark-campaign/
   tensor4all-rules/
   tensor4all-rules-audit/
 ```
