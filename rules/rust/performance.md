@@ -27,6 +27,11 @@
   (tensor4all/tenferro-rs#2180, tensor4all/strided-rs#306). `tinyvec` needs
   `Default` items, which integers satisfy. Existing `SmallVec` uses migrate
   when touched, and a hot path never calls `clone()` on one.
+  `TinyVec` matches on its inline/heap variant on every access, so a hot
+  inner loop takes `as_slice()` once, or uses a fixed `[T; N]` cursor with a
+  separate spill, instead of indexing the `TinyVec` per element. A `TinyVec`
+  cursor inside a strided-rs `reduce_axis` loop cost about 26 extra
+  instructions per output (strided-rs#306 B2).
 
 ## Indexing And Slicing
 
