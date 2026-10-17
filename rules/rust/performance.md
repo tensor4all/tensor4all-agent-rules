@@ -11,17 +11,22 @@
 - Keep dtype dispatch at the outer boundary. Share implementation through
   generics, traits, or macros instead of duplicating `f32`/`f64`/complex
   bodies.
-- Hot inline metadata (shape, strides, offsets, axis lists: bounded-rank
-  integers carried by tensors, views and plans) uses a fixed-capacity `Copy`
-  inline type, so a copy is a bitwise move. Do not use `smallvec::SmallVec`
-  for it: `SmallVec::clone` is element-wise. In smallvec 1.x it goes through
-  `From<&[T]>` (an iterator collect), with `memcpy` only under the nightly
-  `specialization` feature. In the 2.0 betas it is an `extend`. On an EPYC
-  7713P (smallvec 1.16.3 and 2.0.0-beta.3) a rank 2-8 clone took 4.7-13 ns,
-  against 0.7 ns for a bitwise copy of the same 72 bytes
-  (tensor4all/tenferro-rs#2180, tensor4all/strided-rs#306). `SmallVec` stays
-  acceptable on cold paths and for non-`Copy` items. Where it remains on a hot
-  path, borrow it or rebuild with `from_slice`; never `clone()` it per call.
+- Bounded-rank inline metadata (shape, strides, offsets, axis lists: `Copy`
+  integers carried by tensors, views and plans) uses `tinyvec`, the single
+  inline-vector crate across tensor4all repositories. Use
+  `tinyvec::ArrayVec<[T; N]>` for a fixed capacity: it is `Copy`, so a copy is
+  a bitwise move. Use `tinyvec::TinyVec<[T; N]>` where the capacity may spill
+  to the heap: an inline clone is still a bitwise copy. Do not use
+  `smallvec::SmallVec` or `arrayvec::ArrayVec` for this metadata, because
+  their `clone` is element-wise. smallvec 1.x routes it through `From<&[T]>`
+  (an iterator collect), with `memcpy` only under the nightly
+  `specialization` feature, and the 2.0 betas use `extend`. Measured on an
+  EPYC 7713P (smallvec 1.16.3, arrayvec 0.7.8, tinyvec 1.13.3), a clone at
+  rank 2-8 takes 3.6-5.5 ns (`SmallVec`), 2.0-4.4 ns (`arrayvec::ArrayVec`),
+  0.65 ns (`tinyvec::ArrayVec`) and 0.97 ns (`tinyvec::TinyVec`)
+  (tensor4all/tenferro-rs#2180, tensor4all/strided-rs#306). `tinyvec` needs
+  `Default` items, which integers satisfy. Existing `SmallVec` uses migrate
+  when touched, and a hot path never calls `clone()` on one.
 
 ## Indexing And Slicing
 
