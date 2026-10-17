@@ -11,6 +11,17 @@
 - Keep dtype dispatch at the outer boundary. Share implementation through
   generics, traits, or macros instead of duplicating `f32`/`f64`/complex
   bodies.
+- Hot inline metadata (shape, strides, offsets, axis lists: bounded-rank
+  integers carried by tensors, views and plans) uses a fixed-capacity `Copy`
+  inline type, so a copy is a bitwise move. Do not use `smallvec::SmallVec`
+  for it: `SmallVec::clone` is element-wise. In smallvec 1.x it goes through
+  `From<&[T]>` (an iterator collect), with `memcpy` only under the nightly
+  `specialization` feature. In the 2.0 betas it is an `extend`. On an EPYC
+  7713P (smallvec 1.16.3 and 2.0.0-beta.3) a rank 2-8 clone took 4.7-13 ns,
+  against 0.7 ns for a bitwise copy of the same 72 bytes
+  (tensor4all/tenferro-rs#2180, tensor4all/strided-rs#306). `SmallVec` stays
+  acceptable on cold paths and for non-`Copy` items. Where it remains on a hot
+  path, borrow it or rebuild with `from_slice`; never `clone()` it per call.
 
 ## Indexing And Slicing
 
