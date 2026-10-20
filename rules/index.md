@@ -21,6 +21,12 @@ language-specific rules when the task touches that language.
   users and coding agents: bundled usage skills, remedy clauses in errors,
   package-index metadata gates, verified llms.txt indexes.
 
+## Benchmark
+
+- [`benchmark/index.md`](benchmark/index.md): running and publishing a measurement - binding
+  yourself off the measured cores, pins resolved from git, checked versus timed cells, and what a
+  table may compare.
+
 ## Rust
 
 - [`rust/index.md`](rust/index.md): entry point; unsafe boundary, unit-test
