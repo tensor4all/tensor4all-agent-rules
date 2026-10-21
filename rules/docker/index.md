@@ -3,6 +3,9 @@
 Apply these rules when adding or changing Docker images, Compose services, or
 containerized build, test, and QA runners that share files with the host.
 
+Also read [rootless.md](rootless.md) when configuring or supporting rootless
+Docker: setup, UID/GID mapping, daemon selection, storage, and resource limits.
+
 ## Host File Ownership
 
 - Files and directories created in host bind mounts must remain owned by the
@@ -10,8 +13,8 @@ containerized build, test, and QA runners that share files with the host.
   This includes build outputs, caches, reports, and retained test fixtures.
 - Inspect the image's `USER` and entrypoint, including privilege changes and
   recursive `chown` operations. A service that switches to a fixed non-root UID
-  can cause the same ownership problem as root when that UID differs from the
-  host user's. Matching usernames alone does not align numeric IDs.
+  can leave files owned by another host user. Matching usernames alone does
+  not align numeric IDs.
 - For rootful Linux Docker without user-namespace remapping, run writers with
   the host user's UID and GID, for example with
   `--user "$(id -u):$(id -g)"`, or the equivalent Compose `user` setting.
@@ -23,8 +26,8 @@ containerized build, test, and QA runners that share files with the host.
 ## Writable Paths And Mounts
 
 - Make entrypoints executable and configure `HOME`, caches, and output paths
-  for the chosen runtime identity. Install tools and dependencies that require
-  root while building the image rather than making the test runner root.
+  for the chosen runtime identity. Install system dependencies while building
+  the image; choose the writer's runtime UID according to the daemon mode.
 - Create host mount directories as the invoking user before starting Docker.
   Prefer explicit `--mount type=bind` declarations that reject missing source
   paths; `-v` can silently create a missing host directory through the daemon,
@@ -33,7 +36,7 @@ containerized build, test, and QA runners that share files with the host.
   outputs in explicit directories. Container-private state can use a
   disposable volume or temporary filesystem; exports to the host still obey
   the host ownership contract.
-- If privileged initialization is unavoidable, limit it to explicitly owned
+- If initialization needs host-root privileges, limit it to explicitly owned
   disposable paths and drop privileges before running builds or tests.
   Document any ownership restoration, cover failure and interruption, and
   report restoration failures. An exit trap alone is insufficient because

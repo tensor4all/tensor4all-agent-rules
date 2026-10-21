@@ -25,6 +25,8 @@ applicable workflow and language rules.
 
 - [`docker/index.md`](docker/index.md): host file ownership, runtime UID/GID,
   writable paths, bind mounts, cleanup, and permission regression checks.
+- [`docker/rootless.md`](docker/rootless.md): rootless setup, UID/GID mapping,
+  daemon selection, storage, and resource limits.
 
 ## Benchmark
 
