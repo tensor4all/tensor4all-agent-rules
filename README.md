@@ -21,6 +21,7 @@ task needs.
 rules/
   index.md
   common/
+  docker/
   rust/
   julia/
 skills/

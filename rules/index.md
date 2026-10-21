@@ -1,7 +1,7 @@
 # Tensor4all Agent Rules Index
 
-Read only the files relevant to the task: common rules first, then
-language-specific rules when the task touches that language.
+Read only the files relevant to the task: common rules first, then the
+applicable workflow and language rules.
 
 ## Common
 
@@ -20,6 +20,11 @@ language-specific rules when the task touches that language.
 - [`common/agent-consumers.md`](common/agent-consumers.md): serving downstream
   users and coding agents: bundled usage skills, remedy clauses in errors,
   package-index metadata gates, verified llms.txt indexes.
+
+## Docker
+
+- [`docker/index.md`](docker/index.md): host file ownership, runtime UID/GID,
+  writable paths, bind mounts, cleanup, and permission regression checks.
 
 ## Benchmark
 
@@ -49,6 +54,8 @@ language-specific rules when the task touches that language.
 
 - Do not bulk-load the repository by default.
 - Load common rules for any cross-repository implementation work.
+- Load Docker rules for images, Compose services, or containerized build,
+  test, and QA runners that share files with the host.
 - Load agent-consumers rules for docs sites, packaging or release metadata,
   error messages, usage skills, or README quickstarts of a user-facing library.
 - Load Rust rules for Rust crates, C API layers, backend code, or Rust docs.
