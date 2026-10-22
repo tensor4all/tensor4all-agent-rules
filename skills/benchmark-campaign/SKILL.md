@@ -60,3 +60,19 @@ that is the same everywhere and the part that has cost real time.
   complete set; a claim needs an A/A pair, not one run read twice.
 - A negative result is a result: record the candidate that lost *with the measurement that killed
   it*, so that the next session does not spend the day on it again.
+
+## Diagnostics under `probes/`
+
+A standalone driver that links the measured library by path and is run by hand - `faer-benchmark`
+keeps three - answers "where does the time go", not "is this change faster". The driver stays
+untracked in `probes/`; the numbers it produced go into the `docs/worklogs/` entry of the decision
+they fed, and are labelled a diagnostic where they are quoted.
+
+It is outside `pinned.sh` and outside the recorder, so the pin is yours: bind yourself off the
+measured set, declare the CPU set per thread count, the statistic and the repetition count *before*
+the first run, and report the values you got rather than a rounded factor.
+
+A diagnostic never adopts a change. Re-confirm it with a paired campaign run
+(`record_run.py ... --no-publish` plus `candidate_compare.py`); the predeclared experiment protocol
+in [`../../rules/common/performance.md`](../../rules/common/performance.md) is what the pair has to
+satisfy.
