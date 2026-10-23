@@ -57,6 +57,30 @@ legacy tradeoff, a reference path, or a known migration target.
 - When leaving a known tradeoff in place, document why the input size is
   bounded or the cost acceptable.
 
+## Optimising Against Proprietary Software
+
+A vendor library (MKL, cuBLAS, cuTENSOR, a closed BLAS) is a yardstick, not a
+source. When a change is measured against one:
+
+- **Allowed:** timing the vendor through its public API under the same
+  conditions as our code (the campaign's vendor arms); reading its public
+  documentation for what an API does and what its parameters mean; stating a
+  hypothesis about how it reaches a number ("it probably pads the leading
+  dimension") and testing that hypothesis on *our* code; reading published
+  papers and reference implementations whose licence is compatible (reference
+  LAPACK is BSD-3) and citing them in the module header.
+- **Not allowed:** disassembling, decompiling or tracing the vendor binary;
+  sampling a profiler into its internals to learn its structure; reading its
+  source where one exists (leaked, under NDA, or as a licensed component);
+  carrying over constants, thresholds or orderings that were learned from it
+  rather than measured on our code; translating a reference implementation's
+  code without its licence notice, even when the licence would permit it.
+- **Record the provenance** in the change's worklog and ledger row: which
+  papers the algorithm comes from, that the vendor was timed through its public
+  API only, and that no vendor or (if so) no LAPACK code was consulted. A design
+  choice should trace to a measured breakdown of *our* code, not to what the
+  vendor is believed to do.
+
 ## Performance-Gated Experiment Protocol
 
 Human/process protocol; intentionally not routed to the diff-scoped review bot.
