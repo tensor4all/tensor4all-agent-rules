@@ -64,6 +64,16 @@
   and solves. Do not reimplement kernels in downstream layers.
 - When integrating faer, BLAS, LAPACK, or CUDA libraries, keep packing and ABI
   copies at explicit boundaries and reuse scratch where possible.
+- A work copy's leading dimension must not be a multiple of 1 KiB. A column
+  stride of 4 KiB maps every entry of a row onto one L1 set, and an algorithm
+  that touches rows (a bidiagonalization gathers and scatters one per step)
+  runs a fifth slower at n = 512 than at 500 or 520; pad the copy by 64 bytes
+  per column when the stride would be such a multiple (faer fork,
+  `svd/mod.rs` `work_rows`, 2026-10-23: 18.6 -> 15.3 ms at eight threads).
+  Benchmark shapes are powers of two, so the defect is invisible nowhere else.
+- Rows of a column-major matrix are strided operands: vector kernels and
+  reductions want a contiguous one, so gather a row into a contiguous buffer
+  once, work there, and scatter once, rather than passing the strided view.
 
 ## Graph, Compiler, And Cache Work
 
@@ -139,3 +149,16 @@ An audit of code that fans out on the CPU checks every rule of that section,
 using the check the rule names, and quotes the rule with each finding. In a
 repository not yet migrated to `strided_exec::Exec`, report each departure as a
 migration gap with its location, not as a defect.
+
+- A caller that hands faer a thread budget holds a team around its calls:
+  `faer::team::with_team(width, |par| ...)`, once per session or region, and
+  passes `par` to every faer call inside. The members spin while the team is
+  held instead of being woken for each region, so an algorithm made of many
+  short regions stays cheap (bidiagonalization at n = 512, eight threads:
+  25.5 ms with the members woken per region against 19.2 ms with the team
+  held). The library does not create the team itself; the policy owner
+  (`CpuExecutionContext`, a benchmark harness) does.
+- Inside the closure, run other parallel work on the same team rather than
+  through a raw rayon iterator (`par_chunks_mut`, `par_iter`, `rayon::join`):
+  the held members occupy their cores, and the raw iterator competes with
+  them.
