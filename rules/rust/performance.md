@@ -64,6 +64,16 @@
   and solves. Do not reimplement kernels in downstream layers.
 - When integrating faer, BLAS, LAPACK, or CUDA libraries, keep packing and ABI
   copies at explicit boundaries and reuse scratch where possible.
+- A work copy's leading dimension must not be a multiple of 1 KiB. A column
+  stride of 4 KiB maps every entry of a row onto one L1 set, and an algorithm
+  that touches rows (a bidiagonalization gathers and scatters one per step)
+  runs a fifth slower at n = 512 than at 500 or 520; pad the copy by 64 bytes
+  per column when the stride would be such a multiple (faer fork,
+  `svd/mod.rs` `work_rows`, 2026-10-23: 18.6 -> 15.3 ms at eight threads).
+  Benchmark shapes are powers of two, so the defect is invisible nowhere else.
+- Rows of a column-major matrix are strided operands: vector kernels and
+  reductions want a contiguous one, so gather a row into a contiguous buffer
+  once, work there, and scatter once, rather than passing the strided view.
 
 ## Graph, Compiler, And Cache Work
 
@@ -138,3 +148,16 @@
 - Provider-owned threading (BLAS/OpenMP-style) is controlled by provider
   variables documented per repository; library code must not derive its own
   pool policy from an ambient runtime.
+- A caller that hands faer a thread budget holds faer's worker group around
+  its calls (`faer::spindle::with_lock(n, || ...)`, once per session or
+  region). Outside the lock every parallel region inside faer is a plain
+  rayon fork/join that wakes the workers and partitions the work afresh; an
+  algorithm made of many short regions runs a third slower (bidiagonalization
+  at n = 512, eight threads: 25.5 ms against 19.2). The library does not take
+  the lock itself; the policy owner (`CpuExecutionContext`, a benchmark
+  harness) does. Nesting is allowed.
+- Inside a library whose regions go through spindle, never use a raw rayon
+  iterator (`par_chunks_mut`, `par_iter`, `rayon::join`): when the caller holds
+  the worker group those threads are occupied, and the raw iterator runs
+  starved (the faer fork's block-apply split, 2026-10-23: 28.9 ms against
+  17.5 once routed through `spindle::for_each`).
