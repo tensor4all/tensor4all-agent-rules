@@ -40,7 +40,7 @@ applicable workflow and language rules.
   organization, debug/enum hygiene.
 - [`rust/performance.md`](rust/performance.md): allocation, slicing, linalg,
   GPU kernels, uninitialized/scratch acquisition, build profiles, CPU
-  parallelism (the placement token and the spindle boundary, as audit items).
+  parallelism (audited against the tensor4all-meta placement rules).
 - [`rust/numerical.md`](rust/numerical.md): numerical correctness, AD
   validation, typed-error classification.
 - [`rust/build-artifacts.md`](rust/build-artifacts.md): where Cargo and compiler
