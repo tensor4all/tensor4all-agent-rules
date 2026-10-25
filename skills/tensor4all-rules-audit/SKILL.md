@@ -15,6 +15,8 @@ An audit request does not by itself authorize implementation, issues or PRs.
    files. Read applicable rules and referenced decisions, not the entire workspace
    by default. A local or uncommitted target is valid; describe it accurately.
    Do not require a push or a GitHub-visible commit to inspect local work.
+   Code that fans out on the CPU (Rayon, `strided-exec`, faer, spindle) is
+   audited against `rules/rust/performance.md`, "CPU Parallelism".
 2. **Inspect the real path.** Read enough source to understand the contract,
    callers and existing checks. Use existing API documentation when helpful;
    do not build release-mode documentation as a default audit prerequisite.

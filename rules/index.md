@@ -39,7 +39,8 @@ applicable workflow and language rules.
 - [`rust/index.md`](rust/index.md): entry point; unsafe boundary, unit-test
   organization, debug/enum hygiene.
 - [`rust/performance.md`](rust/performance.md): allocation, slicing, linalg,
-  GPU kernels, uninitialized/scratch acquisition, build profiles, threading.
+  GPU kernels, uninitialized/scratch acquisition, build profiles, CPU
+  parallelism (the placement token and the spindle boundary, as audit items).
 - [`rust/numerical.md`](rust/numerical.md): numerical correctness, AD
   validation, typed-error classification.
 - [`rust/build-artifacts.md`](rust/build-artifacts.md): where Cargo and compiler
