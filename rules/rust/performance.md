@@ -128,51 +128,14 @@
 
 ## CPU Parallelism
 
-The design is
+The rules are the six of "Where placement is decided" in
 [`tensor4all-meta/docs/design/core-boundary-and-execution-ownership.md`](https://github.com/tensor4all/tensor4all-meta/blob/main/docs/design/core-boundary-and-execution-ownership.md),
-section "Where placement is decided" (its rules 1 to 13 and "faer and spindle"),
-with the walkthroughs
-[`cpu-placement-token.md`](https://github.com/tensor4all/tensor4all-meta/blob/main/docs/design/cpu-placement-token.md)
-and [`spindle.md`](https://github.com/tensor4all/tensor4all-meta/blob/main/docs/design/spindle.md).
-The design is the source of truth; the items below are what an audit checks.
-They apply to code that runs on `strided_exec::Exec`. In a repository not yet
-migrated to it, report each departure as a migration gap with its location,
-not as a defect.
+with "faer and spindle" and "What the token does not bound" in the same section.
+Each rule names the check that enforces it (`cargo deny`, `cargo public-api`,
+clippy `disallowed-methods`, compile-fail and property tests, the
+`strided-exec` ledger). They are not restated here.
 
-- **Fan-out only through the token.** Outside `strided-exec`, no crate calls
-  `rayon::scope`, `join`, `spawn`, `par_iter` / `par_chunks`,
-  `ThreadPool::install`, or, in kernel crates, `std::thread::spawn` /
-  `scope`. Check: `cargo deny` bans `rayon` except through the listed
-  wrappers, and clippy `disallowed-methods` lists the thread calls.
-- **No ambient pool.** A serial token runs on the calling thread and nothing
-  falls back to the global Rayon pool. Check: each consumer keeps a
-  `strided_exec::ledger::global_pool_unstarted()` test in its own process.
-- **Decide before entering.** Choose `jobs` and `grain` from `budget()` and
-  run a budget of one inline; never enter a pool to find out whether
-  parallelism pays.
-- **Budgets only shrink.** A token is not cloned or stored in plans and caches,
-  a callee does not re-derive or raise a budget, and a split hands each child
-  a token whose budgets add up to the parent's (`fork`, `for_ranges`,
-  narrowing with `limit`, sequential phases with `reborrow`).
-- **One source of truth for policy.** Parallel thresholds, `WorkModel` and
-  `BatchPolicy` live once, in the provider crate; per-op copies of the same
-  decision are a finding, and policy code starts no tasks.
-- **Vendor libraries through `Exec::external`.** faer and vendor BLAS receive a
-  plain width from `external`; no adapter derives a pool or thread count from
-  an ambient runtime. BLAS/OpenMP worker teams stay provider-controlled and
-  are documented per repository.
-- **spindle stays inside t4a-faer.** No other crate depends on spindle or opens
-  a `with_lock` region (check: `cargo deny` with `wrappers` listing only
-  `t4a-faer`). A batched caller such as tlinalg gives every slot to the batch
-  with `Par::Seq` items when the batch is at least the budget, and otherwise
-  forks the token with one `external` per item. Inside t4a-faer, every
-  parallel kernel reachable from a region dispatches through spindle; plain
-  Rayon code there runs on one thread.
-- **No Rayon type in a public signature.** Check: `cargo public-api` of
-  `strided-exec`, `tcontract-exec` and `tenferro-cpu` contains no `rayon::`.
-- **Barrier-bearing kernels use `broadcast`.** A refusal takes the
-  barrier-free path; the participant count is never clamped silently.
-- **Concurrency claims need the ledger.** A claim that work stays within a
-  budget is shown with the `strided-exec` ledger's peak at the root token, or,
-  inside faer or a vendor library, measured at the kernel boundary. A worker
-  index or a pool size is not evidence.
+An audit of code that fans out on the CPU checks every rule of that section,
+using the check the rule names, and quotes the rule with each finding. In a
+repository not yet migrated to `strided_exec::Exec`, report each departure as a
+migration gap with its location, not as a defect.

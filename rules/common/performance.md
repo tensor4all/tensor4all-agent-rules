@@ -47,8 +47,8 @@ legacy tradeoff, a reference path, or a known migration target.
 - GPU reductions must not hide unbounded serial work in one thread. Use a
   documented strategy and threshold where a unit-thread fallback is allowed.
 - CPU threading policy has one source of truth per repository or runtime
-  object. For Rust crates the placement design and its audit items are in
-  [`../rust/performance.md`](../rust/performance.md), "CPU Parallelism".
+  object. For Rust crates, [`../rust/performance.md`](../rust/performance.md),
+  "CPU Parallelism", says which design the audit checks.
 
 ## Evidence
 
