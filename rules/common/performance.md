@@ -50,6 +50,42 @@ legacy tradeoff, a reference path, or a known migration target.
   object. For Rust crates, [`../rust/performance.md`](../rust/performance.md),
   "CPU Parallelism", says which design the audit checks.
 
+## Parallel Scaling
+
+A parallel split must keep working when the thread count `p` grows to the
+largest host the code runs on (64 cores and more), not only at the 4 to 8
+threads of the development machine. Check every new or changed parallel region
+against these failure modes before measuring it:
+
+- **Shared operand read once per task.** If each task reads the same large
+  operand (a basis, a panel, a factor), total traffic is `p × size` and the
+  region becomes bandwidth-bound once the operand exceeds a thread's share of
+  cache. Pack or stage the shared operand once and let tasks read the shared
+  copy, or split in two dimensions so each task reads `size / r`.
+- **`O(p)` partial results.** Splitting a reduction into one partial per thread
+  costs `p × partial` memory and an `O(p)` combine. Combine in a tree or bound
+  the number of partials independently of `p`.
+- **Fixed task caps and fixed split counts.** A constant such as "at most four
+  tasks" or a split count unrelated to `p` leaves threads idle as `p` grows.
+  Derive the split from the shapes and the thread budget.
+- **Granularity and thresholds that ignore `p`.** A threshold tuned on one
+  thread count can make tasks so small at high `p` that dispatch dominates.
+  Thresholds come from the work per task and the dispatch cost model.
+- **Contention that grows with `p`.** Barriers, atomics and locks on a shared
+  counter or buffer inside the region.
+- **Cache domains.** On hosts with several L3 domains (CCX/CCD, NUMA), data
+  shared across domains costs more than within one; do not assume one
+  shared L3.
+
+Compare the split with what the reference implementation does (for dense
+linear algebra, reference LAPACK and an open BLAS such as OpenBLAS, which
+parallelize inside BLAS). A split that only wins at the development host's
+thread count, or only against a regressed baseline, is not adopted. Scaling
+evidence covers at least 1, 8 and the largest available thread count, and
+reports per-call traffic (counters or a computed schedule) when the claim is
+about memory traffic. Judge by mechanism: fix a split whose cost grows with
+`p`; do not tune constants to one host.
+
 ## Evidence
 
 - Measure scaling across representative sizes, shapes, layouts, and thread
