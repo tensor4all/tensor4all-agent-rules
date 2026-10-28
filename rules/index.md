@@ -13,7 +13,7 @@ applicable workflow and language rules.
   performance-gated experiment protocol, cache ownership, complexity budget.
 - [`common/docs-and-tests.md`](common/docs-and-tests.md): documentation audits,
   doc-example policy (no `ignore`/`no_run`), public `Result` error-doc gate,
-  tests, benchmarks, local vs hosted validation.
+  tests, benchmarks and their charts, local vs hosted validation.
 - [`common/provenance.md`](common/provenance.md): recording third-party
   references in source, copyright for ports and translations, scientific
   credit and citation policy, permission-gated upstream bug feedback.

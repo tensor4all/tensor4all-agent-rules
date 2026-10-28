@@ -100,6 +100,8 @@
   shape, length, or rank hides wrong-but-shaped results.
 - Keep setup cost separate from the measured operation, or state that setup is
   intentionally included.
+- Charts with a log axis show minor ticks on that axis, so readers can tell
+  small differences apart.
 
 ## Doc Examples
 
