@@ -1,0 +1,125 @@
+<svg viewBox="0 0 1180 660" width="1180" height="660" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two-level agent fleet: a maintainer, on a laptop or a phone, talks to one orchestrator session; the orchestrator controls herdr on remote machines over Tailscale and SSH; each machine runs several agents that open pull requests on GitHub; shared state lives in a git repository.">
+  <title>Two-level agent fleet</title>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5b6575"/></marker>
+    <marker id="arn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#7a4cc2"/></marker>
+    <style>
+      text { font-family: "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif; fill: #1d2430; }
+      .mono { font-family: Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace; font-size: 12px; fill: #5b6575; }
+      .muted { fill: #5b6575; }
+      .h { font-weight: 600; font-size: 15px; }
+      .lab { font-size: 11px; letter-spacing: 0.08em; font-weight: 600; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1180" height="660" rx="14" fill="#ffffff"/>
+
+  <!-- Level 0 -->
+  <text x="24" y="34" class="lab" fill="#2f6fdb" style="fill:#2f6fdb">LEVEL 0: HUMAN</text>
+  <rect x="24" y="46" width="250" height="92" rx="9" fill="#eef2f8" stroke="#2f6fdb" stroke-width="1.6"/>
+  <text x="40" y="74" class="h">Maintainer</text>
+  <text x="40" y="96" class="muted" font-size="13">Decides, approves releases,</text>
+  <text x="40" y="114" class="muted" font-size="13">chats in plain language</text>
+
+  <!-- phone -->
+  <rect x="300" y="46" width="92" height="92" rx="9" fill="#eef2f8" stroke="#2f6fdb" stroke-width="1.4" stroke-dasharray="5 4"/>
+  <rect x="333" y="56" width="26" height="42" rx="5" fill="#ffffff" stroke="#2f6fdb" stroke-width="1.4"/>
+  <line x1="342" y1="93" x2="350" y2="93" stroke="#2f6fdb" stroke-width="1.4"/>
+  <text x="346" y="116" text-anchor="middle" font-size="12">Phone</text>
+  <text x="346" y="131" text-anchor="middle" font-size="11" class="muted">same session</text>
+  <path d="M274 92 H298" stroke="#2f6fdb" stroke-width="1.4" fill="none"/>
+  <path d="M346 140 C346 170 220 168 200 190" stroke="#2f6fdb" stroke-width="1.4" stroke-dasharray="5 4" fill="none" marker-end="url(#ar)"/>
+  <text x="290" y="176" class="muted" font-size="11">remote control</text>
+
+  <!-- Level 1 -->
+  <text x="24" y="182" class="lab" style="fill:#0f8a6b">LEVEL 1: LAPTOP</text>
+  <rect x="24" y="194" width="250" height="250" rx="9" fill="#ffffff" stroke="#0f8a6b" stroke-width="1.6"/>
+  <text x="40" y="222" class="h">Orchestrator session</text>
+  <text x="40" y="242" class="muted" font-size="13">Claude Code on the laptop</text>
+  <text x="40" y="270" font-size="13">- Rounds every 10 min (cron)</text>
+  <text x="40" y="290" font-size="13">- Reads each agent's screen</text>
+  <text x="40" y="310" font-size="13">- Dispatches tasks by prompt</text>
+  <text x="40" y="330" font-size="13">- Reviews and merges PRs</text>
+  <text x="40" y="350" font-size="13">- Escalates decisions upward</text>
+  <text x="40" y="378" class="mono">herdr --machine host-a_vpn \</text>
+  <text x="40" y="396" class="mono">  agent read|prompt NAME</text>
+  <text x="40" y="424" class="mono">ssh host-c_vpn ...</text>
+
+  <path d="M149 138 V192" stroke="#5b6575" stroke-width="1.5" fill="none" marker-end="url(#ar)" marker-start="url(#ar)"/>
+
+  <!-- network band -->
+  <rect x="300" y="194" width="92" height="250" rx="9" fill="#f3eefb" stroke="#7a4cc2" stroke-width="1.4" stroke-dasharray="5 4"/>
+  <text x="346" y="292" text-anchor="middle" class="h" style="fill:#7a4cc2">Tailscale</text>
+  <text x="346" y="312" text-anchor="middle" font-size="12.5" class="muted">private</text>
+  <text x="346" y="328" text-anchor="middle" font-size="12.5" class="muted">network</text>
+  <text x="346" y="356" text-anchor="middle" font-size="12.5" class="muted">+ SSH key,</text>
+  <text x="346" y="372" text-anchor="middle" font-size="12.5" class="muted">no passphrase</text>
+  <path d="M274 319 H298" stroke="#7a4cc2" stroke-width="1.6" fill="none" marker-end="url(#arn)"/>
+
+  <!-- Level 2 hosts -->
+  <text x="420" y="34" class="lab" style="fill:#b4581c">LEVEL 2: REMOTE MACHINES, EACH RUNNING HERDR</text>
+
+  <!-- host a -->
+  <rect x="420" y="46" width="236" height="250" rx="9" fill="#ffffff" stroke="#b4581c" stroke-width="1.6"/>
+  <text x="436" y="74" class="h">host-a</text>
+  <text x="436" y="94" class="muted" font-size="12.5">quiet benchmark host</text>
+  <rect x="436" y="108" width="204" height="40" rx="6" fill="#eef2f8" stroke="#c9d0db"/>
+  <text x="448" y="133" font-size="13">pi agent: cheap model</text>
+  <rect x="436" y="156" width="204" height="40" rx="6" fill="#eef2f8" stroke="#c9d0db"/>
+  <text x="448" y="181" font-size="13">Claude Code: bench</text>
+  <text x="436" y="226" class="muted" font-size="12.5">boost off, pinned cores,</text>
+  <text x="436" y="244" class="muted" font-size="12.5">regression gates</text>
+
+  <!-- host b -->
+  <rect x="676" y="46" width="236" height="250" rx="9" fill="#ffffff" stroke="#b4581c" stroke-width="1.6"/>
+  <text x="692" y="74" class="h">host-b</text>
+  <text x="692" y="94" class="muted" font-size="12.5">implementation host with a GPU</text>
+  <rect x="692" y="108" width="204" height="30" rx="6" fill="#eef2f8" stroke="#c9d0db"/>
+  <text x="704" y="128" font-size="13">Claude Opus: repo 1 impl</text>
+  <rect x="692" y="144" width="204" height="30" rx="6" fill="#eef2f8" stroke="#c9d0db"/>
+  <text x="704" y="164" font-size="13">Claude Opus: repo 2 impl</text>
+  <rect x="692" y="180" width="204" height="30" rx="6" fill="#eef2f8" stroke="#c9d0db"/>
+  <text x="704" y="200" font-size="13">Claude Sonnet: docs</text>
+  <rect x="692" y="216" width="204" height="30" rx="6" fill="#eef2f8" stroke="#c9d0db"/>
+  <text x="704" y="236" font-size="13">pi agent: cheap model ...</text>
+  <text x="692" y="274" class="muted" font-size="12.5">local GPU gate, no paid CI</text>
+
+  <!-- host c -->
+  <rect x="932" y="46" width="224" height="250" rx="9" fill="#ffffff" stroke="#b4581c" stroke-width="1.6"/>
+  <text x="948" y="74" class="h">host-c</text>
+  <text x="948" y="94" class="muted" font-size="12.5">many-core scaling host</text>
+  <rect x="948" y="108" width="192" height="40" rx="6" fill="#eef2f8" stroke="#c9d0db"/>
+  <text x="960" y="133" font-size="13">pi agent: bench</text>
+  <rect x="948" y="156" width="192" height="40" rx="6" fill="#eef2f8" stroke="#c9d0db"/>
+  <text x="960" y="181" font-size="13">Claude Opus: review</text>
+  <text x="948" y="226" class="muted" font-size="12.5">thread scaling and</text>
+  <text x="948" y="244" class="muted" font-size="12.5">library comparisons</text>
+
+  <path d="M392 260 C405 260 405 171 418 171" stroke="#7a4cc2" stroke-width="1.6" fill="none" marker-end="url(#arn)"/>
+  <path d="M392 300 C520 300 640 300 674 250" stroke="#7a4cc2" stroke-width="1.6" fill="none" marker-end="url(#arn)"/>
+  <path d="M392 330 C700 330 900 330 930 260" stroke="#7a4cc2" stroke-width="1.6" fill="none" marker-end="url(#arn)"/>
+
+  <!-- inside each agent -->
+  <rect x="420" y="352" width="736" height="92" rx="9" fill="#eef2f8" stroke="#c9d0db"/>
+  <text x="436" y="378" class="h">Inside one agent (autopilot skill)</text>
+  <text x="436" y="402" font-size="13">plans a phase, drives cheap workers (pi + a cheap model), gets an independent review from</text>
+  <text x="436" y="422" font-size="13">another model, runs local tests and gates, opens one PR, fixes CI until green, stops and reports</text>
+
+  <!-- shared services -->
+  <rect x="24" y="500" width="520" height="130" rx="9" fill="#ffffff" stroke="#c9d0db"/>
+  <text x="40" y="528" class="h">GitHub: tensor4all/*</text>
+  <text x="40" y="552" font-size="13">Agents push branches and open PRs; issues are assigned to the</text>
+  <text x="40" y="572" font-size="13">maintainer when work starts. Only the orchestrator merges, and</text>
+  <text x="40" y="592" font-size="13">crates.io releases need the maintainer's explicit approval.</text>
+
+  <rect x="568" y="500" width="588" height="130" rx="9" fill="#ffffff" stroke="#c9d0db"/>
+  <text x="584" y="528" class="h">Shared state: a private git repository</text>
+  <text x="584" y="552" font-size="13">handoff.md (current state, approvals verbatim), one file per agent,</text>
+  <text x="584" y="572" font-size="13">a daily append-only worklog, the cron prompts. A new orchestrator</text>
+  <text x="584" y="592" font-size="13">session resumes from it after a crash or a full context.</text>
+
+  <path d="M788 446 V496" stroke="#5b6575" stroke-width="1.5" fill="none" marker-end="url(#ar)"/>
+  <text x="796" y="476" class="muted" font-size="12">PRs, state</text>
+  <path d="M149 446 V496" stroke="#5b6575" stroke-width="1.5" fill="none" marker-end="url(#ar)" marker-start="url(#ar)"/>
+  <text x="157" y="476" class="muted" font-size="12">review, merge</text>
+</svg>

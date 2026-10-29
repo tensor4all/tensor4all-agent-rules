@@ -33,3 +33,8 @@ skills/
 
 Skills are thin trigger and workflow layers; the rule files are the source of
 truth.
+
+## Guides
+
+- [`docs/agent-fleet`](docs/agent-fleet/README.md): how to run many coding
+  agents on several machines from one orchestrator session.
