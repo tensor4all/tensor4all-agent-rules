@@ -20,7 +20,7 @@ The fleet has three levels.
   prompt, reviews and merges pull requests, and escalates decisions it should
   not take.
 - **Level 2: the machines.** Each remote machine runs
-  herdr, a terminal multiplexer for
+  [herdr](https://github.com/herdrdev/herdr), a terminal multiplexer for
   coding agents, with several agents in its panes. Agents are Claude Code
   sessions (Opus or Sonnet) or pi agents on cheaper models such as DeepSeek.
 
@@ -69,7 +69,7 @@ Check that `ssh host-a_vpn true` works without any prompt.
 
 ### 3. herdr
 
-Install herdr on each machine and start it there. On the laptop, register each
+Install [herdr](https://herdr.dev) (0.9.5 when this page was written) on each machine and start it there. On the laptop, register each
 machine once:
 
 ```sh
@@ -123,7 +123,7 @@ line shows that bypass permissions is on.
 
 ### 7. pi agents
 
-[pi](https://github.com/badlogic/pi-mono) runs agents on cheaper models. Two
+[pi](https://github.com/earendil-works/pi) runs agents on cheaper models. Two
 things differ from Claude Code.
 
 - A prompt sent while the agent is in a long tool call is queued. It runs only
