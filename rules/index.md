@@ -1,5 +1,17 @@
 # Tensor4all Agent Rules Index
 
+## The Implementation Outranks The Documentation
+
+The code, its tests, and the CI configuration define current behavior. When a
+document, design note, guide, code comment, or bundled skill says something the
+code no longer does, the code wins. Read the stale sentence as a defect to report
+and fix, never as an instruction to restore what it describes.
+
+Agents are pulled toward whatever a document asserts, so a confident paragraph
+about a removed mechanism does more damage than a missing paragraph. Before you
+act on any statement about behavior, confirm it against the implementation. If the
+two disagree, do not edit code to satisfy the prose.
+
 Read only the files relevant to the task: common rules first, then the
 applicable workflow and language rules.
 
