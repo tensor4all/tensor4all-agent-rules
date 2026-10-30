@@ -17,6 +17,29 @@
   still blocked (missing trait or function signatures, how to construct core
   objects).
 
+## Documentation Is Subordinate To The Implementation
+
+- The implementation, its tests, and the CI configuration are the source of
+  truth. A document that disagrees is stale by definition, however specific or
+  authoritative it reads.
+- Never change code to satisfy a stale document. In particular, do not restore a
+  removed mechanism (an old dependency, a session style API, a feature flag, a
+  backend, an adapter layer) because a design note still describes it.
+- When you find a stale statement, fix it in the same change if it is in scope and
+  name the code reference you used (`file:line`) in the commit or pull request so
+  the correction is checkable. If it is out of scope, open an issue with that
+  reference rather than leaving the prose in place.
+- Treat these as high risk and verify them before acting: design documents marked
+  required reading, architecture pages that assign ownership of a module, and any
+  text stating which crate or package is the source of truth. Ownership drift in
+  these pages silently misdirects the next change, including the next agent.
+- If you cannot tell which side is current, read the tests and the CI jobs for
+  that area. If they still disagree, ask before acting; do not assume the document
+  is right.
+- When you delete an implementation, delete or rewrite the documents that describe
+  it in the same change. A removal that leaves the old description behind will be
+  reverted by a later agent acting on that description.
+
 ## Examples
 
 - User-facing examples verify behavior, not just compile.
