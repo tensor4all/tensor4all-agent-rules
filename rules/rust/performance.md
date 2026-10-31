@@ -62,6 +62,15 @@
 - No hidden row-major compatibility shims or silent row-major round-trips.
 - Use the owning backend/linalg abstraction for GEMM, einsum, decompositions,
   and solves. Do not reimplement kernels in downstream layers.
+
+Contractions, GEMM, decompositions and solves must use the owning abstraction
+(`einsum_tensors`, `tcontract`, `tlinalg`, or the backend provider); never replace
+them with a repository-local inner scalar-accumulate loop. Handwritten kernels
+bypass the tuned path, threading/SIMD policy and the abstractions' numeric
+contract. If a loop genuinely cannot be expressed through the abstraction, put
+`// contraction-kernel-ok: <reason>` immediately above that loop and explain the
+exception in the PR description.
+
 - When integrating faer, BLAS, LAPACK, or CUDA libraries, keep packing and ABI
   copies at explicit boundaries and reuse scratch where possible.
 - A work copy's leading dimension must not be a multiple of 1 KiB. A column
