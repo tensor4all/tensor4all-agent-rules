@@ -39,6 +39,10 @@ algorithmic layers. Reviewers judge *where* it lives, not the raw count.
   the owning crate. If a crate sets `[lib] test = false`, do not add
   crate-local unit-test entrypoints; move a private helper needing direct unit
   tests into the owning internal crate.
+- A fork of an upstream project keeps the upstream layout for files that came
+  from upstream, inline test modules included. Only files the fork adds follow
+  this rule; moving upstream tests widens the diff against upstream and makes
+  every rebase harder.
 
 ## Debug And Enum Hygiene
 
