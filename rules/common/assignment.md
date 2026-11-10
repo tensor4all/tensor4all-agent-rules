@@ -19,6 +19,11 @@ stay away.
   punctuation — every successful response contains `{`, `}` and `:`.
 - If the read-back does not show you, stop. A claim that did not stick is a
   claim that will be stolen by the next scheduled sweep.
+- **The assignee list separates accounts, not sessions.** Two sessions logged in
+  as the same user each see only themselves, so neither read-back detects a
+  rival. Within one account the list proves nothing about who is already working:
+  use the pane name, the branch or the journal, and assume a parallel session may
+  hold the same issue.
 - **A claim is not atomic, and the read-back must reject a rival.** Assignment
   is a plain list append: two sessions can both add themselves to the same empty
   list and both read back success. Re-read the full assignee set after adding.
