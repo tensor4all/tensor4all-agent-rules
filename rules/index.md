@@ -21,6 +21,10 @@ applicable workflow and language rules.
   layering, dependency boundaries, publication/release safety, invariant
   markers, API evolution, output-update naming, file organization, work logs,
   final integration review, repository-local overrides.
+- [`common/assignment.md`](common/assignment.md): who may work on an issue —
+  claiming by assignment, never taking another person's issue, re-checking the
+  assignees and the open pull requests before opening a PR, and making the check
+  mechanical.
 - [`common/performance.md`](common/performance.md): performance checklist,
   performance-gated experiment protocol, cache ownership, complexity budget.
 - [`common/docs-and-tests.md`](common/docs-and-tests.md): documentation audits,
