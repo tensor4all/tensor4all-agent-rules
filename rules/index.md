@@ -32,7 +32,8 @@ applicable workflow and language rules.
   tests, benchmarks and their charts, local vs hosted validation.
 - [`common/provenance.md`](common/provenance.md): recording third-party
   references in source, copyright for ports and translations, scientific
-  credit and citation policy, permission-gated upstream bug feedback.
+  credit and citation policy, permission-gated upstream bug feedback, mandatory
+  AI/model disclosure on GitHub Issues and provenance for automated posts.
 - [`common/agent-consumers.md`](common/agent-consumers.md): serving downstream
   users and coding agents: bundled usage skills, remedy clauses in errors,
   package-index metadata gates, verified llms.txt indexes.
@@ -70,6 +71,9 @@ applicable workflow and language rules.
 - [`julia/numerical.md`](julia/numerical.md): numerical validation and bindings.
 
 ## Loading Policy
+
+- Before creating or editing GitHub Issues or Issue comments, load
+  `common/provenance.md` and include its required authorship disclosure.
 
 - Do not bulk-load the repository by default.
 - Load common rules for any cross-repository implementation work.
