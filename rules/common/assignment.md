@@ -12,13 +12,22 @@ stay away.
   approval step and no reason to ask first.
 - Read the current assignees first, not the issue body. An issue whose body
   looks unstarted may already be held by a parallel session.
-- **Confirm the claim landed.** `gh api repos/<owner>/<repo>/issues/<n>` returns
-  exit status 0 with a `{"message":"Not Found"}` body for a bad number, so a
-  parser that trusts the exit status records "held by someone else" for an issue
-  that does not exist. Reject anything containing `{`, `}` or `:` before treating
-  the output as a list, then read the field back.
+- **Confirm the claim landed.** `gh api repos/<owner>/<repo>/issues/<n>` answers
+  a bad number with an error body, not an issue: `{"message":"Not Found",...}`
+  (the current CLI exits 1; older versions exited 0, so the status alone decides
+  nothing). Parse the body as JSON, require `number` and `assignees`, and read
+  `.assignees[].login`. Do not test for JSON punctuation — every successful
+  response contains `{`, `}` and `:`.
 - If the read-back does not show you, stop. A claim that did not stick is a
   claim that will be stolen by the next scheduled sweep.
+- **A claim is not atomic, and the read-back must reject a rival.** Assignment
+  is a plain list append: two sessions can both add themselves to the same empty
+  list and both read back success. Re-read the full assignee set after adding.
+  If it contains anyone but you, the issue is contended: read
+  `gh api repos/<owner>/<repo>/issues/<n>/events` and keep the actor of the
+  **first** `assigned` event; the other claimant removes themselves
+  (`gh issue edit <n> --remove-assignee @me`) and moves on. Adding yourself
+  second and staying is not a tie-break, it is a collision.
 
 ## Do Not Take Another Person's Issue
 
