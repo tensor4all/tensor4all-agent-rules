@@ -14,20 +14,22 @@ stay away.
   looks unstarted may already be held by a parallel session.
 - **Confirm the claim landed.** `gh api repos/<owner>/<repo>/issues/<n>` answers
   a bad number with an error body, not an issue: `{"message":"Not Found",...}`
-  (the current CLI exits 1; older versions exited 0, so the status alone decides
-  nothing). Parse the body as JSON, require `number` and `assignees`, and read
-  `.assignees[].login`. Do not test for JSON punctuation — every successful
-  response contains `{`, `}` and `:`.
+  (measured with the current CLI, which exits 1). Parse the body as JSON, require
+  `number` and `assignees`, and read `.assignees[].login`. Do not test for JSON
+  punctuation — every successful response contains `{`, `}` and `:`.
 - If the read-back does not show you, stop. A claim that did not stick is a
   claim that will be stolen by the next scheduled sweep.
 - **A claim is not atomic, and the read-back must reject a rival.** Assignment
   is a plain list append: two sessions can both add themselves to the same empty
   list and both read back success. Re-read the full assignee set after adding.
   If it contains anyone but you, the issue is contended: read
-  `gh api repos/<owner>/<repo>/issues/<n>/events` and keep the actor of the
-  **first** `assigned` event; the other claimant removes themselves
-  (`gh issue edit <n> --remove-assignee @me`) and moves on. Adding yourself
-  second and staying is not a tie-break, it is a collision.
+  `gh api repos/<owner>/<repo>/issues/<n>/events`, keep only the `assigned`
+  events whose `assignee.login` is one of the current assignees, and the
+  claimant whose event has the earliest `created_at` keeps the issue; the other
+  removes themselves (`gh issue edit <n> --remove-assignee @me`) and moves on.
+  Filter by `assignee`, not by `actor`: a maintainer assigning someone else, or
+  an assignment that has since been removed, must not decide the race. Adding
+  yourself second and staying is not a tie-break, it is a collision.
 
 ## Do Not Take Another Person's Issue
 
