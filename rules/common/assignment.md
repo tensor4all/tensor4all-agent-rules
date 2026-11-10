@@ -23,13 +23,14 @@ stay away.
   is a plain list append: two sessions can both add themselves to the same empty
   list and both read back success. Re-read the full assignee set after adding.
   If it contains anyone but you, the issue is contended: read
-  `gh api repos/<owner>/<repo>/issues/<n>/events`, keep only the `assigned`
-  events whose `assignee.login` is one of the current assignees, and the
-  claimant whose event has the earliest `created_at` keeps the issue; the other
-  removes themselves (`gh issue edit <n> --remove-assignee @me`) and moves on.
-  Filter by `assignee`, not by `actor`: a maintainer assigning someone else, or
-  an assignment that has since been removed, must not decide the race. Adding
-  yourself second and staying is not a tie-break, it is a collision.
+  `gh api repos/<owner>/<repo>/issues/<n>/events` and give each current assignee
+  the time of their **latest** `assigned` event that no later `unassigned` for
+  that person cancels — their current, uninterrupted claim. The earliest of
+  those times keeps the issue; the other claimant removes themselves
+  (`gh issue edit <n> --remove-assignee @me`) and moves on. An assignment that
+  was made, removed and re-added counts from the re-add, and an `actor` who
+  assigned someone else is not a claimant: filter by `assignee`. Adding yourself
+  second and staying is not a tie-break, it is a collision.
 
 ## Do Not Take Another Person's Issue
 
@@ -51,7 +52,7 @@ that counts:
 - **Re-read the open pull requests too.** A branch whose name ends in `-<n>`, a
   title containing `#<n>`, or a body containing `Closes #<n>` or `Fixes #<n>` is
   already an implementation of that issue, even when it was opened after you
-  started. Two live pull requests for one issue is a merge conflict between
+  started. Match the number whole: `#12` must not match `#123`. Two live pull requests for one issue is a merge conflict between
   people, not a technical conflict.
 - When a duplicate does appear, the decision to close one belongs to whoever
   owns the pull request. Read its state and its author first; the author may
