@@ -9,13 +9,18 @@ described in [`docs/agent-fleet`](../../docs/agent-fleet/README.md).
 Every rule below also binds an interactive agent when it opens, reviews, holds,
 or merges a pull request. The superagent is only the actor that does it most.
 
-## Dispatch Only `ai-ready`
+## Dispatch Only `ai-ready`, Never `human-approve-required`
 
 - Dispatch only open, unassigned issues labelled `ai-ready`. A `bug` label, an
   issue body that reads as finished design, or the issue's age is not
   readiness.
 - Labelling is the maintainer's superagent's job, applied while it patrols. No
   label means no dispatch.
+- `human-approve-required` marks an issue or PR that needs an explicit human
+  decision (public API, accepted design, release, new dependency, governance).
+  Never dispatch it, never merge it, and never remove the label yourself; a
+  human removes it when they decide. If it appears on an in-flight PR,
+  convert the PR to draft.
 - An issue opened minutes ago by someone else is often backed by their local
   fix. Leave it alone unless it is `ai-ready` and unassigned.
 
