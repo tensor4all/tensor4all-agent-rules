@@ -25,6 +25,10 @@ applicable workflow and language rules.
   claiming by assignment, never taking another person's issue, re-checking the
   assignees and the open pull requests before opening a PR, and making the check
   mechanical.
+- [`common/superagent.md`](common/superagent.md): patrolling and merging
+  agents — dispatch only `ai-ready` (never `human-approve-required`), `Model:` line in every PR, review by a
+  different provider (`xreview:done`) before merge, hold = draft, re-read
+  state before consequential actions.
 - [`common/performance.md`](common/performance.md): performance checklist,
   performance-gated experiment protocol, cache ownership, complexity budget.
 - [`common/docs-and-tests.md`](common/docs-and-tests.md): documentation audits,
@@ -74,6 +78,9 @@ applicable workflow and language rules.
 
 - Before creating or editing GitHub Issues or Issue comments, load
   `common/provenance.md` and include its required authorship disclosure.
+
+- Before opening, reviewing, holding, or merging a pull request, load
+  `common/superagent.md`.
 
 - Do not bulk-load the repository by default.
 - Load common rules for any cross-repository implementation work.

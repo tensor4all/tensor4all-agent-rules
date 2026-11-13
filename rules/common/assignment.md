@@ -10,6 +10,10 @@ stay away.
 - **Assign yourself before the first read that matters.** `gh issue edit <n>
   --add-assignee @me` on an unassigned issue is the whole ceremony; there is no
   approval step and no reason to ask first.
+- **Filing an issue for a fix you already have? Claim it in the same step:**
+  `gh issue create --assignee @me`. An unassigned issue invites a patrol to
+  start a second implementation (tensor4all-rs#1227 was claimed by a patrol
+  four minutes before its author opened a PR for it, and got two PRs).
 - Read the current assignees first, not the issue body. An issue whose body
   looks unstarted may already be held by a parallel session.
 - **Confirm the claim landed.** `gh api repos/<owner>/<repo>/issues/<n>` answers
