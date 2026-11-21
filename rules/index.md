@@ -57,8 +57,8 @@ applicable workflow and language rules.
 
 ## Rust
 
-- [`rust/index.md`](rust/index.md): entry point; unsafe boundary, unit-test
-  organization, debug/enum hygiene.
+- [`rust/index.md`](rust/index.md): entry point; MSRV policy, unsafe boundary,
+  unit-test organization, debug/enum hygiene.
 - [`rust/performance.md`](rust/performance.md): allocation, slicing, linalg,
   GPU kernels, uninitialized/scratch acquisition, build profiles, CPU
   parallelism (audited against the tensor4all-meta placement rules).
