@@ -9,6 +9,27 @@ when cleaning `target/` trees, diagnosing disk usage from build outputs, setting
 Cargo profile options that change artifact size, or working with a compiler
 cache around Rust builds.
 
+## Minimum Supported Rust Version
+
+A tensor4all crate is a general-purpose library; its `rust-version` is a
+promise to downstream users, not a record of the toolchain its authors use.
+
+- Develop and run the ordinary CI jobs on the latest stable Rust, and declare
+  as `rust-version` the lowest version the crate actually builds and tests on.
+  Do not tie the MSRV to the latest stable or align it across crates for
+  uniformity alone.
+- Raise the MSRV only for a technical reason: a language or standard-library
+  feature the code now uses, or a dependency whose own `rust-version` requires
+  it. Name the reason in the PR and in the CHANGELOG entry.
+- Every crate declares `rust-version` in `Cargo.toml` and has a CI job that
+  builds and tests on exactly that version. A crate with no declared MSRV
+  (for example a foundation crate such as `strided-rs`) picks one and adds
+  that job.
+- A crate that provides a tenferro adapter, or that tenferro depends on, keeps
+  an MSRV no higher than tenferro-rs's whenever it can, so that a user of the
+  stack is never forced past tenferro's own MSRV. A dependency that must go
+  higher is raised with the user before it lands.
+
 ## Unsafe Code Boundary
 
 `unsafe` is confined to FFI bindings and backend leaf code and near-absent from
