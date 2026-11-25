@@ -84,6 +84,31 @@ exception in the PR description.
   reductions want a contiguous one, so gather a row into a contiguous buffer
   once, work there, and scatter once, rather than passing the strided view.
 
+## SIMD Dispatch
+
+A published binary (a crate build, a Python wheel, a Julia JLL) is compiled once
+on a build host and runs on CPUs with other SIMD sets. The SIMD path is
+therefore chosen at run time.
+
+- A published build does not set `target-cpu=native`, a raised `target-cpu`, or
+  a global `target-feature` (in `.cargo/config.toml`, `RUSTFLAGS` of release
+  jobs, or a build script). Those tie the binary to the build host or drop the
+  wide units on the baseline target.
+- Every ISA level the code has kernels for (AVX2, AVX-512, NEON, SME, ...) is
+  reachable from the default features, through run-time detection
+  (`is_x86_feature_detected!`, `is_aarch64_feature_detected!`,
+  `pulp::Arch::dispatch`) plus `#[target_feature(enable = ...)]` on the kernel.
+  A level that only a non-default feature or a build flag can reach is a bug,
+  and is filed as one. Example: colmat and t4a-gemm keep AVX-512 behind
+  `x86-v4`, so tenferro, which uses their defaults, never runs it
+  (tensor4all/colmat-rs#39).
+- If a kernel level gives wrong results, fix that kernel. Do not keep it out of
+  the default build to avoid the failure.
+- A non-default feature may restrict dispatch (for example to cut binary size
+  or for a benchmark), never be needed to enable it.
+- Tests run each available level, not only the one the test host would pick,
+  where the dispatch layer allows forcing a level.
+
 ## Graph, Compiler, And Cache Work
 
 - Do not clone full graph input maps, metadata scopes, root lists, or
