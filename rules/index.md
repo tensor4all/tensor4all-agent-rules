@@ -60,7 +60,7 @@ applicable workflow and language rules.
 - [`rust/index.md`](rust/index.md): entry point; MSRV policy, unsafe boundary,
   unit-test organization, debug/enum hygiene.
 - [`rust/performance.md`](rust/performance.md): allocation, slicing, linalg,
-  GPU kernels, uninitialized/scratch acquisition, build profiles, CPU
+  run-time SIMD dispatch, GPU kernels, uninitialized/scratch acquisition, build profiles, CPU
   parallelism (audited against the tensor4all-meta placement rules).
 - [`rust/numerical.md`](rust/numerical.md): numerical correctness, AD
   validation, typed-error classification.
