@@ -6,41 +6,113 @@
   metadata-only layout changes over dense copy-in/copy-out.
 - Use `Vec::with_capacity` or reusable scratch when every element will be
   written. Do not zero-fill buffers that are immediately overwritten.
-- Avoid `to_vec()`, `clone()`, `format!`, `HashSet` construction, or `String`
+- No `to_vec()`, `clone()`, `format!`, `HashSet` construction, or `String`
   fingerprints in hot loops unless the size is bounded and documented.
 - Keep dtype dispatch at the outer boundary. Share implementation through
-  generics, traits, or macros instead of duplicating `f32`/`f64`/complex bodies.
+  generics, traits, or macros instead of duplicating `f32`/`f64`/complex
+  bodies.
+- Bounded-rank inline metadata (shape, strides, offsets, axis lists: `Copy`
+  integers carried by tensors, views and plans) uses `tinyvec`, the single
+  inline-vector crate across tensor4all repositories. Use
+  `tinyvec::ArrayVec<[T; N]>` for a fixed capacity: it is `Copy`, so a copy is
+  a bitwise move. Use `tinyvec::TinyVec<[T; N]>` where the capacity may spill
+  to the heap: an inline clone is still a bitwise copy. Do not use
+  `smallvec::SmallVec` or `arrayvec::ArrayVec` for this metadata, because
+  their `clone` is element-wise. smallvec 1.x routes it through `From<&[T]>`
+  (an iterator collect), with `memcpy` only under the nightly
+  `specialization` feature, and the 2.0 betas use `extend`. Measured on an
+  EPYC 7713P (smallvec 1.16.3, arrayvec 0.7.8, tinyvec 1.13.3), a clone at
+  rank 2-8 takes 3.6-5.5 ns (`SmallVec`), 2.0-4.4 ns (`arrayvec::ArrayVec`),
+  0.65 ns (`tinyvec::ArrayVec`) and 0.97 ns (`tinyvec::TinyVec`)
+  (tensor4all/tenferro-rs#2180, tensor4all/strided-rs#306). `tinyvec` needs
+  `Default` items, which integers satisfy. Existing `SmallVec` uses migrate
+  when touched, and a hot path never calls `clone()` on one.
+  `TinyVec` matches on its inline/heap variant on every access, so a hot
+  inner loop takes `as_slice()` once, or uses a fixed `[T; N]` cursor with a
+  separate spill, instead of indexing the `TinyVec` per element. A `TinyVec`
+  cursor inside a strided-rs `reduce_axis` loop cost about 26 extra
+  instructions per output (strided-rs#306 B2).
 
 ## Indexing And Slicing
 
 - Validate rank, axes, bounds, steps, output shape, and boundary behavior once
-  at the API or planning boundary.
-- After validation, carry shape/stride/offset metadata into the inner loop
-  instead of repeating checks per element.
-- Prefer iterator patterns that help LLVM eliminate bounds checks: direct slice
-  iteration, pre-sliced ranges, `chunks_exact`, and explicit pre-loop
-  assertions.
+  at the API or planning boundary, then carry shape/stride/offset metadata into
+  the inner loop instead of re-checking per element.
+- Prefer iterator patterns that let LLVM eliminate bounds checks: direct slice
+  iteration, pre-sliced ranges, `chunks_exact`, explicit pre-loop assertions.
 - Use unchecked indexing or raw pointers only when the validation invariant is
   close to the unsafe block and covered by boundary tests.
 - Avoid per-element `flat -> multi-index` decoding in tensor-sized loops when
   incremental index/offset traversal is possible.
+- Hoist every runtime mode out of tensor-sized loops. This includes conj
+  flags, `beta == 0`, C/D source choice and `Option`/enum operands. Use one
+  `match` at the boundary, monomorphized bodies (generics, const generics,
+  type-level ops such as strided-view `ElementOp`), and no per-element
+  `dyn Fn` call.
+- Elementwise/map/zip over strided views goes through `strided-rs`
+  (`strided-basic` `map_into`, `zip_map{2,3,4}_into`, `mul_into`, `fma`,
+  ...). Add a missing operation to strided-rs instead of hand-writing an
+  odometer loop downstream.
 
 ## Dense Layout And Linear Algebra
 
 - Preserve repository-local dense layout semantics. Tensor4all Rust projects
-  commonly use column-major dense buffers; check the project rules before
-  adding flat-buffer APIs or examples.
-- Do not add hidden row-major compatibility shims or silent row-major
-  round-trips.
+  commonly use column-major dense buffers; check project rules before adding
+  flat-buffer APIs or examples.
+- No hidden row-major compatibility shims or silent row-major round-trips.
 - Use the owning backend/linalg abstraction for GEMM, einsum, decompositions,
   and solves. Do not reimplement kernels in downstream layers.
+
+Contractions, GEMM, decompositions and solves must use the owning abstraction
+(`einsum_tensors`, `tcontract`, `tlinalg`, or the backend provider); never replace
+them with a repository-local inner scalar-accumulate loop. Handwritten kernels
+bypass the tuned path, threading/SIMD policy and the abstractions' numeric
+contract. If a loop genuinely cannot be expressed through the abstraction, put
+`// contraction-kernel-ok: <reason>` immediately above that loop and explain the
+exception in the PR description.
+
 - When integrating faer, BLAS, LAPACK, or CUDA libraries, keep packing and ABI
   copies at explicit boundaries and reuse scratch where possible.
+- A work copy's leading dimension must not be a multiple of 1 KiB. A column
+  stride of 4 KiB maps every entry of a row onto one L1 set, and an algorithm
+  that touches rows (a bidiagonalization gathers and scatters one per step)
+  runs a fifth slower at n = 512 than at 500 or 520; pad the copy by 64 bytes
+  per column when the stride would be such a multiple (faer fork,
+  `svd/mod.rs` `work_rows`, 2026-10-23: 18.6 -> 15.3 ms at eight threads).
+  Benchmark shapes are powers of two, so the defect is invisible nowhere else.
+- Rows of a column-major matrix are strided operands: vector kernels and
+  reductions want a contiguous one, so gather a row into a contiguous buffer
+  once, work there, and scatter once, rather than passing the strided view.
+
+## SIMD Dispatch
+
+A published binary (a crate build, a Python wheel, a Julia JLL) is compiled once
+on a build host and runs on CPUs with other SIMD sets. The SIMD path is
+therefore chosen at run time.
+
+- A published build does not set `target-cpu=native`, a raised `target-cpu`, or
+  a global `target-feature` (in `.cargo/config.toml`, `RUSTFLAGS` of release
+  jobs, or a build script). Those tie the binary to the build host or drop the
+  wide units on the baseline target.
+- Every ISA level the code has kernels for (AVX2, AVX-512, NEON, SME, ...) is
+  reachable from the default features, through run-time detection
+  (`is_x86_feature_detected!`, `is_aarch64_feature_detected!`,
+  `pulp::Arch::dispatch`) plus `#[target_feature(enable = ...)]` on the kernel.
+  A level that only a non-default feature or a build flag can reach is a bug,
+  and is filed as one. Example: colmat and t4a-gemm keep AVX-512 behind
+  `x86-v4`, so tenferro, which uses their defaults, never runs it
+  (tensor4all/colmat-rs#39).
+- If a kernel level gives wrong results, fix that kernel. Do not keep it out of
+  the default build to avoid the failure.
+- A non-default feature may restrict dispatch (for example to cut binary size
+  or for a benchmark), never be needed to enable it.
+- Tests run each available level, not only the one the test host would pick,
+  where the dispatch layer allows forcing a level.
 
 ## Graph, Compiler, And Cache Work
 
-- Do not clone full graph input maps, metadata scopes, root lists, or checkpoint
-  chains on every node unless the sizes are known to be small.
+- Do not clone full graph input maps, metadata scopes, root lists, or
+  checkpoint chains on every node unless the sizes are known to be small.
 - Precompute membership maps or live sets for compiler passes instead of
   rescanning later instructions for every slot.
 - Prefer structural cache keys and exact equality checks over formatting whole
@@ -53,40 +125,43 @@
 
 ## Build Profiles And Target Hygiene
 
-- Default `[profile.dev]` and `[profile.test]` should set `debug = 0` while
-  keeping `debug-assertions` and `overflow-checks` enabled, and keep
-  incremental compilation on for edit-test loops. Provide a one-command
-  override (for example `CARGO_PROFILE_DEV_DEBUG=1`) or an opt-in profile for
-  debugger sessions.
-- `[profile.release] debug = true` in a workspace whose normal verification
-  runs in release mode multiplies the build directory by gigabytes. Prefer
-  `debug = "line-tables-only"` for readable backtraces, with a separate
-  `release-debug` inheriting profile for full debugger information.
-- The profile used by comprehensive CI runs should disable incremental
-  compilation and set `strip = "symbols"`.
+- Default `[profile.dev]` and `[profile.test]` set `debug = 0`, keep
+  `debug-assertions` and `overflow-checks` enabled, and keep incremental
+  compilation on for edit-test loops. `debug = 1` and `debug = "line-tables-only"`
+  are debug info too — both emit DWARF — so the override is
+  `CARGO_PROFILE_DEV_DEBUG` or a named opt-in profile, never a default one.
+- No default profile carries debug info, `release` and `bench` included; it
+  multiplies the build directory and the shared compiler cache by gigabytes for
+  something no test reads. When a workspace needs readable backtraces or a
+  debugger, add one narrow profile that inherits the standard one
+  (`release-debug`, `profiling`) instead of enabling it for everyone. See
+  [`build-artifacts.md`](build-artifacts.md#debug-info-is-not-a-default).
+- The profile used by comprehensive CI runs disables incremental compilation
+  and sets `strip = "symbols"`.
 - Dependency `rev =` bumps and feature churn leave orphaned rlibs and test
   binaries in `target/` that no profile setting removes. Document the pruning
-  mechanism (an age-based sweep tool, or a periodic `cargo clean`), and
-  propose a cleanup when `target/` growth is dominated by stale artifacts.
+  mechanism (age-based sweep tool or periodic `cargo clean`) and propose a
+  cleanup when `target/` growth is dominated by stale artifacts. See
+  [`build-artifacts.md`](build-artifacts.md) for what must be preserved and the
+  cache-convergence step.
 
 ## GPU Kernels
 
-- Launch domains should cover the output or update domain. Avoid
+- Launch domains cover the output or update domain. No
   `CubeCount::new_single()` or equivalent single-thread fallbacks for
   tensor-sized work.
-- Kernel bodies should not contain unbounded loops over tensor elements inside
-  one logical worker.
-- Runtime shape/stride metadata should flow through backend bindings rather
-  than being duplicated as large compile-time parameter sets unless the
+- Kernel bodies must not loop unbounded over tensor elements inside one logical
+  worker.
+- Runtime shape/stride metadata flows through backend bindings rather than
+  being duplicated as large compile-time parameter sets unless the
   specialization is intentional.
 
 ## Uninitialized And Scratch Acquisition
 
-- Raw uninitialized acquisition must be an `unsafe fn` or return
-  `MaybeUninit`-typed storage. Never hide uninitialized acquisition inside a
-  safe `fn` that returns live `T` values. The unsafe/`MaybeUninit` path must be
-  documented as full-overwrite-only: every element is written before any read,
-  so a caller must not read uninitialized slots.
+- Raw uninitialized acquisition is an `unsafe fn` or returns
+  `MaybeUninit`-typed storage. Never hide it inside a safe `fn` returning live
+  `T` values. Document the path as full-overwrite-only: every element is
+  written before any read.
 - Expose a separate zeroed/initialized acquisition for read-before-write
   callers.
 - Never fix stale reads by unconditional zero-fill of a shared hot-path
@@ -95,16 +170,29 @@
 - Add regression coverage for both contracts: the uninitialized path stays
   unsafe or `MaybeUninit`-typed, and the zeroed path is safe.
 
-## Threading Principles
+## CPU Parallelism
 
-- Keep one repository source of truth for parallel thresholds (a declared
-  policy mechanism), not per-op copies of the same decision.
-- Short-circuit to the serial kernel when the effective thread count is one.
-- Library kernels must not reach for an ambient global thread pool outside the
-  repository's declared policy mechanism. Non-provider parallel work must
-  execute within the repository/runtime-owned execution context, so thread
-  policy (including one-thread serial execution) is decided at that single
-  source of truth.
-- Provider-owned threading (BLAS/OpenMP-style parallelism) is controlled by
-  provider variables documented per repository; library code must not derive
-  its own pool policy from an ambient runtime.
+The rules are the six of "Where placement is decided" in
+[`tensor4all-meta/docs/design/core-boundary-and-execution-ownership.md`](https://github.com/tensor4all/tensor4all-meta/blob/main/docs/design/core-boundary-and-execution-ownership.md),
+with "faer and spindle" and "What the token does not bound" in the same section.
+Each rule names the check that enforces it (`cargo deny`, `cargo public-api`,
+clippy `disallowed-methods`, compile-fail and property tests, the
+`strided-exec` ledger). They are not restated here.
+
+An audit of code that fans out on the CPU checks every rule of that section,
+using the check the rule names, and quotes the rule with each finding. In a
+repository not yet migrated to `strided_exec::Exec`, report each departure as a
+migration gap with its location, not as a defect.
+
+- A caller that hands faer a thread budget holds a team around its calls:
+  `faer::team::with_team(width, |par| ...)`, once per session or region, and
+  passes `par` to every faer call inside. The members spin while the team is
+  held instead of being woken for each region, so an algorithm made of many
+  short regions stays cheap (bidiagonalization at n = 512, eight threads:
+  25.5 ms with the members woken per region against 19.2 ms with the team
+  held). The library does not create the team itself; the policy owner
+  (`CpuExecutionContext`, a benchmark harness) does.
+- Inside the closure, run other parallel work on the same team rather than
+  through a raw rayon iterator (`par_chunks_mut`, `par_iter`, `rayon::join`):
+  the held members occupy their cores, and the raw iterator competes with
+  them.

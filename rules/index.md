@@ -1,56 +1,94 @@
 # Tensor4all Agent Rules Index
 
-Read only the files relevant to the current task. Start with common rules, then
-load language-specific rules when the task touches that language.
+## The Implementation Outranks The Documentation
+
+The code, its tests, and the CI configuration define current behavior. When a
+document, design note, guide, code comment, or bundled skill says something the
+code no longer does, the code wins. Read the stale sentence as a defect to report
+and fix, never as an instruction to restore what it describes.
+
+Agents are pulled toward whatever a document asserts, so a confident paragraph
+about a removed mechanism does more damage than a missing paragraph. Before you
+act on any statement about behavior, confirm it against the implementation. If the
+two disagree, do not edit code to satisfy the prose.
+
+Read only the files relevant to the task: common rules first, then the
+applicable workflow and language rules.
 
 ## Common
 
 - [`common/repository.md`](common/repository.md): source of truth, API surface,
   layering, dependency boundaries, publication/release safety, invariant
-  markers, API evolution, `ai-ready` issue-burn authorization, output-update
-  naming, file organization, work logs, final cross-phase audits, and
-  repository-local overrides.
-- [`common/performance.md`](common/performance.md): general performance review
-  checklist, the performance-gated experiment protocol, cache ownership, and
-  complexity budget for tensor, compiler, cache, and backend work.
+  markers, API evolution, output-update naming, file organization, work logs,
+  final integration review, repository-local overrides.
+- [`common/assignment.md`](common/assignment.md): who may work on an issue —
+  claiming by assignment, never taking another person's issue, re-checking the
+  assignees and the open pull requests before opening a PR, and making the check
+  mechanical.
+- [`common/superagent.md`](common/superagent.md): patrolling and merging
+  agents — dispatch only `ai-ready` (never `human-approve-required`), `Model:` line in every PR, review by a
+  different provider (`xreview:done`) before merge, hold = draft, re-read
+  state before consequential actions.
+- [`common/performance.md`](common/performance.md): performance checklist,
+  performance-gated experiment protocol, cache ownership, complexity budget.
 - [`common/docs-and-tests.md`](common/docs-and-tests.md): documentation audits,
-  doc-example policy (no `ignore`/`no_run`), the public `Result` error-doc
-  gate, tests, benchmarks, and validation quality.
-- [`common/provenance.md`](common/provenance.md): recording references to
-  third-party code in the source, copyright compliance for ports and
-  translations, scientific credit via provenance and citation policies, and
-  permission-gated upstream bug feedback.
+  doc-example policy (no `ignore`/`no_run`), public `Result` error-doc gate,
+  tests, benchmarks and their charts, local vs hosted validation.
+- [`common/provenance.md`](common/provenance.md): recording third-party
+  references in source, copyright for ports and translations, scientific
+  credit and citation policy, permission-gated upstream bug feedback, mandatory
+  AI/model disclosure on GitHub Issues and provenance for automated posts.
 - [`common/agent-consumers.md`](common/agent-consumers.md): serving downstream
-  users and coding agents of user-facing libraries: bundled usage skills,
-  remedy clauses in error messages, package-index metadata gates, and
-  verified llms.txt indexes.
+  users and coding agents: bundled usage skills, remedy clauses in errors,
+  package-index metadata gates, verified llms.txt indexes.
+
+## Docker
+
+- [`docker/index.md`](docker/index.md): host file ownership, runtime UID/GID,
+  writable paths, bind mounts, cleanup, and permission regression checks.
+- [`docker/rootless.md`](docker/rootless.md): rootless setup, UID/GID mapping,
+  daemon selection, storage, and resource limits.
+
+## Benchmark
+
+- [`benchmark/index.md`](benchmark/index.md): running and publishing a measurement - binding
+  yourself off the measured cores, pins resolved from git, checked versus timed cells, and what a
+  table may compare.
 
 ## Rust
 
-- [`rust/index.md`](rust/index.md): Rust-specific entry point; unsafe
-  boundary, unit-test organization, and debug/enum hygiene.
-- [`rust/performance.md`](rust/performance.md): Rust tensor/backend
-  performance rules, including allocation, slicing, linalg, GPU kernels,
-  uninitialized/scratch acquisition, and threading principles.
+- [`rust/index.md`](rust/index.md): entry point; MSRV policy, unsafe boundary,
+  unit-test organization, debug/enum hygiene.
+- [`rust/performance.md`](rust/performance.md): allocation, slicing, linalg,
+  run-time SIMD dispatch, GPU kernels, uninitialized/scratch acquisition, build profiles, CPU
+  parallelism (audited against the tensor4all-meta placement rules).
 - [`rust/numerical.md`](rust/numerical.md): numerical correctness, AD
-  validation expectations, and typed-error classification.
+  validation, typed-error classification.
+- [`rust/build-artifacts.md`](rust/build-artifacts.md): where Cargo and compiler
+  caches put build outputs; sweeping stale `target/` trees safely.
 
 ## Julia
 
-- [`julia/index.md`](julia/index.md): Julia-specific entry point.
-- [`julia/performance.md`](julia/performance.md): Julia allocation,
-  type-stability, and tensor-network performance rules.
-- [`julia/numerical.md`](julia/numerical.md): Julia numerical validation and
-  bindings expectations.
+- [`julia/index.md`](julia/index.md): entry point.
+- [`julia/performance.md`](julia/performance.md): allocation, type stability,
+  tensor-network performance.
+- [`julia/numerical.md`](julia/numerical.md): numerical validation and bindings.
 
 ## Loading Policy
 
-- Do not bulk-load the entire repository by default.
+- Before creating or editing GitHub Issues or Issue comments, load
+  `common/provenance.md` and include its required authorship disclosure.
+
+- Before opening, reviewing, holding, or merging a pull request, load
+  `common/superagent.md`.
+
+- Do not bulk-load the repository by default.
 - Load common rules for any cross-repository implementation work.
-- Load agent-consumers rules when working on docs sites, packaging or release
-  metadata, error messages, usage skills, or README quickstarts of a
-  user-facing library.
+- Load Docker rules for images, Compose services, or containerized build,
+  test, and QA runners that share files with the host.
+- Load agent-consumers rules for docs sites, packaging or release metadata,
+  error messages, usage skills, or README quickstarts of a user-facing library.
 - Load Rust rules for Rust crates, C API layers, backend code, or Rust docs.
 - Load Julia rules for Julia packages, wrappers, examples, or docs.
-- If project-local rules conflict with these shared rules, follow the more
-  specific project-local rule and document the reason when it affects a PR.
+- When project-local rules conflict with shared rules, follow the more specific
+  project-local rule and document the reason when it affects a PR.
