@@ -7,8 +7,9 @@ load language-specific rules when the task touches that language.
 
 - [`common/repository.md`](common/repository.md): source of truth, API surface,
   layering, dependency boundaries, publication/release safety, invariant
-  markers, API evolution, output-update naming, file organization, work logs,
-  final cross-phase audits, and repository-local overrides.
+  markers, API evolution, `ai-ready` issue-burn authorization, output-update
+  naming, file organization, work logs, final cross-phase audits, and
+  repository-local overrides.
 - [`common/performance.md`](common/performance.md): general performance review
   checklist, the performance-gated experiment protocol, cache ownership, and
   complexity budget for tensor, compiler, cache, and backend work.

@@ -28,6 +28,25 @@
 - If a needed behavior does not fit the current abstraction, refine the
   abstraction instead of patching around it locally.
 
+## Build Profiles
+
+- **Every repository that runs CI defines `[profile.ci]` and its workflows use it** (`cargo test --profile ci`,
+  `cargo nextest --cargo-profile ci`, or the equivalent). The stack is release-mode first: `tensor4all-rs` inherits
+  `release` with `incremental = false` and `strip = "symbols"`; `tenferro-rs` inherits `test` with the same two
+  settings. A repository without the profile builds its CI in the dev profile, where Rust keeps **debug info on by
+  default**.
+- **Why this is not style.** In the dev profile `faer_ffi` takes over an hour to compile with debug info, and the build's
+  memory is real: a worker building inside a herdr pane on a shared host grew that unit to 25.9 GiB, which is what made
+  `systemd-oomd` pick it as a victim and kill the session. Two workers died that way in one night.
+- **When a profile inherits `release`, decide about `debug-assertions` explicitly** rather than letting it inherit. Those
+  assertions are behaviour, not debug info: turning them off changes what the tests catch, and if a suite depends on them
+  that has to be a decision with a test behind it.
+- **Local workarounds are not the fix.** `CARGO_PROFILE_DEV_DEBUG=0` on a command line is the escape hatch when debug info
+  is wanted in the other direction; it is not a substitute for the repository's profile, because every script that forgets
+  it pays the hour again.
+- Run `scripts/check_build_profiles.py` in the advisor checkout to see the current state across the organisation; it
+  reports both "no profile" and "profile defined but no workflow uses it".
+
 ## Publication And Release Safety
 
 Releasing crates or packages to a registry is irreversible. These rules apply
@@ -111,6 +130,43 @@ to every repository that publishes:
   requires a compatibility window (document the window and its end date).
 - Removing or renaming a public item is preferred over retaining a shim under
   the old name; early-development repositories remove obsolete APIs directly.
+
+## AI-Ready Issue Burn
+
+Repositories that permit autonomous AI issue implementation must use a
+maintainer-controlled `ai-ready` label with the description `Human-reviewed
+issue authorized for autonomous AI implementation` and color `7057FF`. The
+label records a human readiness decision; agents must not infer readiness from
+an issue's apparent detail or apply the label during ordinary issue intake.
+
+Maintainers may apply `ai-ready` only after human review confirms all of the
+following:
+
+- Intended and current behavior, implementation scope, and non-goals are
+  explicit.
+- Acceptance criteria and focused regression or verification coverage are
+  precise enough for implementation without a new design decision.
+- Affected packages, public APIs, dependencies, backends, devices, dtypes,
+  feature flags, numerical and AD behavior, documentation, language bindings,
+  cross-repository impact, and design records are identified or explicitly not
+  applicable.
+- Every required public-API, dependency, architecture, backend, numerical,
+  provenance, compatibility, product, roadmap, and landing-order decision has
+  already been accepted.
+- Relevant reproduction details, source locations, references, and provenance
+  constraints are present.
+
+An AI agent may autonomously implement an open issue only while it carries the
+`ai-ready` label. The issue and its linked accepted specifications are the scope
+boundary. The label authorizes implementation, focused validation, and
+preparation of a reviewable pull request; it does not authorize merge,
+publication, release, external communication, destructive operations, scope
+expansion, or bypassing human review and required CI.
+
+If implementation exposes missing or contradictory requirements, requires a
+new decision, or would expand the accepted boundary, the agent must stop the
+issue burn and request maintainer clarification. A maintainer must remove
+`ai-ready` until the issue is ready again.
 
 ## Output-Update Naming Principle
 
